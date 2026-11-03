@@ -284,7 +284,7 @@
   function bottles(n) { return n === 0 ? "0 bottles" : n === 1 ? "1 bottle" : n >= 6 ? "6 or more bottles" : n + " bottles"; }
   function keys(o) { return Object.keys(o); }
   function chosenSpots() { return S.whole ? ["Whole head"] : keys(S.spots); }
-  function hasHeadache() { return S.pain !== null && !S.noPain; }
+  function hasHeadache() { return !S.noPain; }
   function compMinutes() { return S.school + S.homework + S.comp; }
 
   // building blocks
