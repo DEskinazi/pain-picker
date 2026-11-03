@@ -38,6 +38,7 @@
   .hair { fill: #6b4a33; }
   .vlabel { font-size: 15px; fill: var(--muted); text-anchor: middle; }
   .picked { margin: 10px 0 0; min-height: 26px; font-weight: 600; }
+  [hidden] { display: none !important; }
   .go { display: block; width: 100%; background: var(--ok); color: #fff; border: 0; border-radius: 16px; padding: 16px; font: inherit; font-weight: 700; font-size: 20px; cursor: pointer; }
   .go[disabled] { background: var(--line); color: var(--muted); cursor: default; }
   .note { color: var(--muted); font-size: 14px; text-align: center; margin-top: 10px; }
@@ -57,7 +58,7 @@
     </div>
   </section>
 
-  <section aria-labelledby="h-where" id="whereSection">
+  <section aria-labelledby="h-where" id="whereSection" hidden>
     <h2 id="h-where">2. Where does it hurt?</h2>
     <p class="hint">Tap every spot that hurts. Tap again to undo. Left and right are YOUR left and right.</p>
     <div class="heads">
@@ -91,11 +92,11 @@
         <text class="vlabel" x="150" y="330">Back of your head</text>
       </svg>
     </div>
-    <div class="row"><button class="pill" id="whole" aria-pressed="false">My whole head</button></div>
+    <div class="row"><button class="pill" id="whole" aria-pressed="false">My whole head</button><button class="pill" id="notsure" aria-pressed="false">I am not sure where</button></div>
     <p class="picked" id="picked" aria-live="polite"></p>
   </section>
 
-  <section aria-labelledby="h-other" id="otherSection">
+  <section aria-labelledby="h-other" id="otherSection" hidden>
     <h2 id="h-other">3. Does anything else hurt?</h2>
     <p class="hint">Besides your head.</p>
     <div class="row" style="margin-top:0">
@@ -186,7 +187,7 @@
     </div>
   </section>
 
-  <button class="go" id="go" disabled>Open the rest of the form</button>
+  <button class="go" id="go" disabled hidden>Open the rest of the form</button>
   <p class="note">This picks your answers for you. You finish the other questions on the next screen and press Submit there.</p>
 </main>
 
@@ -199,7 +200,7 @@
   var ENTRY_WHERE = "entry.698254753";
 
   var pain = null, noPain = false, whole = false, spots = {};
-  var otherMode = null, others = {};
+  var otherMode = null, others = {}, notSure = false, shown = {};
   var ENTRY_OTHER = "entry.2058593937";
 
   var words = ["Barely","Very mild","Mild","Tolerable","Bothers me","Hurts","Really hurts","Horrible","Awful","Worst ever"];
@@ -230,14 +231,17 @@
   }
 
   document.getElementById("nopain").addEventListener("click", function () {
-    noPain = !noPain; if (noPain) { pain = null; spots = {}; whole = false; } render();
+    noPain = !noPain; if (noPain) { pain = null; spots = {}; whole = false; notSure = false; } render();
+  });
+  document.getElementById("notsure").addEventListener("click", function () {
+    notSure = !notSure; if (notSure) { whole = false; spots = {}; noPain = false; } render();
   });
   document.getElementById("whole").addEventListener("click", function () {
-    whole = !whole; if (whole) { noPain = false; } render();
+    whole = !whole; if (whole) { noPain = false; notSure = false; spots = {}; } render();
   });
   Array.prototype.forEach.call(document.querySelectorAll(".zone[data-v]"), function (z) {
     z.addEventListener("click", function () {
-      var v = z.getAttribute("data-v"); noPain = false; whole = false;
+      var v = z.getAttribute("data-v"); noPain = false; whole = false; notSure = false;
       if (spots[v]) { delete spots[v]; } else { spots[v] = true; }
       render();
     });
@@ -253,6 +257,14 @@
     });
   });
 
+  function reveal(id, on) {
+    var el = document.getElementById(id);
+    var was = !!shown[id];
+    el.hidden = !on;
+    shown[id] = on;
+    if (on && !was) { setTimeout(function () { el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); }
+  }
+
   function chosenSpots() { return whole ? ["Whole head"] : Object.keys(spots); }
 
   function render() {
@@ -265,8 +277,15 @@
       z.classList.toggle("on", !!spots[z.getAttribute("data-v")] && !whole);
     });
     var s = chosenSpots();
-    document.getElementById("picked").textContent = noPain ? "No headache today." : (s.length ? "It hurts: " + s.join(", ") : "");
-    document.getElementById("whereSection").style.opacity = noPain ? "0.4" : "1";
+    document.getElementById("picked").textContent = noPain ? "No headache today." : (notSure ? "Not sure where." : (s.length ? "It hurts: " + s.join(", ") : ""));
+    var haveWhere = whole || notSure || Object.keys(spots).length > 0;
+    var showWhere = !noPain && pain !== null;
+    var showOther = noPain || (showWhere && haveWhere);
+    document.getElementById("notsure").setAttribute("aria-pressed", String(notSure));
+    reveal("whereSection", showWhere);
+    reveal("otherSection", showOther);
+    reveal("go", showOther && otherMode !== null);
+    if (!showOther) { otherMode = null; others = {}; }
     document.getElementById("otherNo").setAttribute("aria-pressed", String(otherMode === "no"));
     document.getElementById("otherYes").setAttribute("aria-pressed", String(otherMode === "yes"));
     document.getElementById("bodyWrap").hidden = otherMode !== "yes";
@@ -278,7 +297,7 @@
     });
     var ok = Object.keys(others);
     document.getElementById("otherPicked").textContent = ok.length ? "Also hurts: " + ok.join(", ") : "";
-    document.getElementById("go").disabled = !(noPain || pain !== null);
+    document.getElementById("go").disabled = !(showOther && otherMode !== null);
   }
 
   document.getElementById("go").addEventListener("click", function () {
