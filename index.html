@@ -237,7 +237,7 @@
   function fresh() {
     return {
       mode: null, date: todayStr(), time: nowStr(), pain: null, noPain: false, spots: {}, whole: false, notSure: false, start: {}, howLong: null,
-      sound: null, light: null, talk: null, nausea: null, threw: null, medicine: null, medNote: "",
+      sound: null, light: null, talk: null, nausea: null, threw: null, better: null, medicine: null, medNote: "",
       period: null, exercise: null, tv: 0, school: 0, homework: 0, comp: 0, phone: 0, tvKinds: {}, compUses: {},
       meal: "Breakfast", foods: { "Breakfast": { chips: {}, text: "" }, "Lunch": { chips: {}, text: "" }, "Dinner": { chips: {}, text: "" }, "Snacks and drinks": { chips: {}, text: "" } },
       water: null, otherMode: null, others: {}, sleep: null, jaw: null, aura: null
@@ -254,6 +254,7 @@
   var HOWLONG = ["Less than 1 hour","1 to 3 hours","3 to 6 hours","More than 6 hours","All day","I still have it right now"];
   var LEVEL = ["No","A little","Yes, a lot"];
   var TALK = ["Yes, normally","It was hard to find words or talk clearly","I could not talk"];
+  var BETTER = ["Yes, a lot","A little","No"];
   var PERIOD = ["Yes","No","I have not started my period yet"];
   var TVKINDS = ["Cartoons","Comedy or sitcoms","Action or adventure","Scary or suspenseful","Reality or competition shows","Movies","YouTube or short videos","Educational or documentary"];
   var COMPUSES = ["Schoolwork","Games","YouTube or videos","Typing or writing","Drawing or art","Chatting or messaging","Other"];
@@ -433,14 +434,18 @@
       summary: function () { return "Sound: " + S.sound + ". Light: " + S.light + ". Talking: " + S.talk; } },
 
     { id: "tummy", title: "How is your tummy?",
-      show: function () { return true; }, valid: function () { return !!(S.nausea && S.threw); },
+      show: function () { return true; }, valid: function () { return !!(S.nausea && S.threw && (S.threw !== "Yes" || S.better)); },
       build: function (box) {
         box.appendChild(qtext("Did you feel sick to your stomach (nauseous)?"));
         box.appendChild(yesno(function () { return S.nausea; }, function (v) { S.nausea = v; }));
         box.appendChild(qtext("Did you throw up?"));
-        box.appendChild(yesno(function () { return S.threw; }, function (v) { S.threw = v; }));
+        box.appendChild(yesno(function () { return S.threw; }, function (v) { S.threw = v; if (v !== "Yes") S.better = null; }));
+        if (S.threw === "Yes") {
+          box.appendChild(qtext("Did you feel better afterward?"));
+          box.appendChild(choice(BETTER, function () { return S.better; }, function (v) { S.better = v; }));
+        }
       },
-      summary: function () { return "Nauseous: " + S.nausea + ". Threw up: " + S.threw; } },
+      summary: function () { return "Nauseous: " + S.nausea + ". Threw up: " + S.threw + (S.threw === "Yes" ? ". Better afterward: " + S.better : ""); } },
 
     { id: "med", title: "Medicine",
       show: function () { return true; }, valid: function () { return !!S.medicine; },
@@ -613,8 +618,8 @@
       return;
     }
     var v = visible(), i = stepIndex(), s = v[i];
-    document.getElementById("stepLabel").textContent = (i + 1) + " / " + v.length;
-    document.getElementById("barFill").style.width = Math.round(((i + 1) / v.length) * 100) + "%";
+    document.getElementById("stepLabel").textContent = S.mode ? (i + 1) + " / " + v.length : "";
+    document.getElementById("barFill").style.width = S.mode ? Math.round(((i + 1) / v.length) * 100) + "%" : "4%";
     box.appendChild(h("h1", {}, [s.title]));
     s.build(box);
     if (i > 0) { var bk = h("button", { type: "button", "class": "back" }, ["Back"]); bk.onclick = function () { go(-1); }; nav.appendChild(bk); }
@@ -655,6 +660,7 @@
       p.append(E.water, bottles(S.water));
       extra.push("TV minutes: " + S.tv, "Computer or tablet at school (in class), minutes: " + S.school, "Computer or tablet for homework at home, minutes: " + S.homework, "Computer or tablet at home not school, minutes: " + S.comp, "Phone or other screens, minutes: " + S.phone, "Sleep last night: " + S.sleep + " hours", "Jaw or face sore on waking: " + S.jaw, "Zigzag lines or blurry spots: " + S.aura);
     }
+    if (S.threw === "Yes" && S.better) extra.push("Felt better after throwing up: " + S.better);
     if (S.medicine === "Yes" && S.medNote) extra.push("Medicine: " + S.medNote);
     if (S.notSure) extra.push("Headache location: not sure");
     p.append(E.extra, extra.join("\n"));
