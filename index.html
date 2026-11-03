@@ -5,77 +5,106 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Pain Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
 <style>
   :root {
-    --bg: #f6f3ff; --card: #ffffff; --ink: #2b2540; --muted: #6b6485;
-    --accent: #6f4fd8; --line: #d9d2f2; --hot: #e8505b; --ok: #3aa86b; --warn: #b4540a;
+    --bg: #f7f3ec; --card: #fffdf9; --ink: #26303a; --muted: #6a7480; --line: #e3dccf;
+    --accent: #2b7a82; --accent-ink: #ffffff; --soft: #e5f1f1; --hot: #e0565b; --ok: #2b7a82; --warn: #a9480a;
+    --shadow: 0 1px 2px rgba(38,48,58,.06), 0 8px 24px rgba(38,48,58,.07);
+    --skin: #f2c9a5; --skin-line: #b98a63; --hair: #6b4a33;
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #1d1a2b; --card: #2a2640; --ink: #f1eefc; --muted: #b3acd0; --line: #4a4468; --warn: #f0a468; }
+  :root[data-theme="dark"] {
+    --bg: #14181d; --card: #1d232a; --ink: #e9edf0; --muted: #98a3ad; --line: #323b45;
+    --accent: #5db5bc; --accent-ink: #0f1a1c; --soft: #20363a; --hot: #ef6c70; --ok: #5db5bc; --warn: #f0a468;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; }
-  .top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 15px; margin-bottom: 8px; }
-  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
-  .bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
-  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; }
-  h1 { font-size: 24px; margin: 0 0 4px; }
-  p.hint { color: var(--muted); font-size: 15px; margin: 0 0 12px; }
-  .note { color: var(--warn); font-weight: 600; margin: 10px 0 0; }
-  .faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-  .face { border: 3px solid transparent; background: transparent; border-radius: 14px; padding: 6px 2px; cursor: pointer; color: var(--ink); font: inherit; text-align: center; }
-  .face svg { width: 100%; max-width: 70px; height: auto; display: block; margin: 0 auto 2px; }
-  .face .n { font-weight: 700; font-size: 20px; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 "Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 14px 16px 0; min-height: 100vh; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; letter-spacing: .2px; }
+  .brand svg { width: 28px; height: 28px; }
+  .mode { border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+  .progress { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--muted); font-size: 14px; font-weight: 600; }
+  .bar { flex: 1; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--accent); width: 0; border-radius: 99px; transition: width .3s ease; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px 18px; box-shadow: var(--shadow); animation: rise .28s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .card { animation: none; } * { transition: none !important; } }
+  h1 { font-size: 24px; line-height: 1.2; margin: 0 0 6px; font-weight: 800; letter-spacing: -.2px; }
+  p.hint { color: var(--muted); font-size: 15px; margin: 0 0 14px; }
+  .note { color: var(--warn); font-weight: 700; margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--soft); }
+  .faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .face { border: 2px solid transparent; background: transparent; border-radius: 16px; padding: 8px 2px 6px; cursor: pointer; color: var(--ink); font: inherit; text-align: center; transition: transform .12s, background .12s; }
+  .face svg { width: 100%; max-width: 64px; height: auto; display: block; margin: 0 auto 2px; }
+  .face .n { font-weight: 800; font-size: 20px; }
   .face .w { font-size: 12px; color: var(--muted); min-height: 30px; line-height: 1.15; }
-  .face[aria-pressed="true"] { border-color: var(--accent); background: rgba(111,79,216,.12); }
+  .face:active { transform: scale(.94); }
+  .face[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); transform: scale(1.04); }
   .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
-  button.pill { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 16px; padding: 12px 16px; min-height: 52px; font: inherit; cursor: pointer; text-align: center; }
-  button.pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button.chip { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 8px 14px; min-height: 44px; font: inherit; font-size: 16px; cursor: pointer; }
-  button.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .q { font-weight: 700; margin: 16px 0 0; }
+  button { -webkit-tap-highlight-color: transparent; }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.pill { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 16px; padding: 12px 16px; min-height: 54px; font: inherit; font-weight: 600; cursor: pointer; text-align: center; transition: transform .1s, background .12s, border-color .12s; }
+  button.pill:active, button.chip:active { transform: scale(.97); }
+  button.pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button.pill[aria-pressed="true"]::before, button.chip[aria-pressed="true"]::before { content: "\2713\00a0"; font-weight: 800; }
+  button.chip { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 8px 15px; min-height: 46px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform .1s, background .12s; }
+  button.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .q { font-weight: 800; margin: 20px 0 0; }
   .q:first-of-type { margin-top: 0; }
-  .heads { display: flex; gap: 8px; justify-content: center; }
+  .heads { display: flex; gap: 6px; justify-content: center; }
   .heads svg { width: 100%; max-width: 330px; height: auto; touch-action: manipulation; }
-  .zone { fill: rgba(111,79,216,.10); stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; cursor: pointer; }
-  .zone:hover { fill: rgba(111,79,216,.25); }
-  .zone.on { fill: rgba(232,80,91,.65); stroke: var(--hot); stroke-dasharray: none; stroke-width: 3; }
-  .skin { fill: #f2c9a5; stroke: #b98a63; stroke-width: 3; }
-  .hair { fill: #6b4a33; }
-  .vlabel { font-size: 15px; fill: var(--muted); text-anchor: middle; }
-  .picked { margin: 10px 0 0; min-height: 26px; font-weight: 600; }
-  .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .zone { fill: rgba(43,122,130,.08); stroke: var(--accent); stroke-width: 1.6; stroke-dasharray: 4 4; cursor: pointer; transition: fill .12s; }
+  .zone:hover { fill: rgba(43,122,130,.22); }
+  .zone.on { fill: var(--hot); fill-opacity: .72; stroke: var(--hot); stroke-dasharray: none; stroke-width: 2.4; }
+  .skin { fill: var(--skin); stroke: var(--skin-line); stroke-width: 3; }
+  .hair { fill: var(--hair); }
+  .vlabel { font-size: 15px; font-weight: 700; fill: var(--muted); text-anchor: middle; }
+  .picked { margin: 12px 0 0; min-height: 26px; font-weight: 700; color: var(--accent); }
+  .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .stepper:last-of-type { border-bottom: 0; }
-  .stepper .lbl { flex: 1; }
-  .stepper .lbl small { display: block; color: var(--muted); font-size: 13px; }
-  .stepper .val { min-width: 92px; text-align: center; font-weight: 700; font-size: 20px; }
-  .stepper button { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent); background: var(--card); color: var(--accent); font-size: 28px; line-height: 1; cursor: pointer; }
-  textarea, input[type=text] { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 8px; }
-  .nav { display: flex; gap: 10px; margin-top: 14px; }
-  .nav button { flex: 1; border: 0; border-radius: 16px; padding: 16px; font: inherit; font-weight: 700; font-size: 19px; cursor: pointer; }
-  .back { background: var(--line); color: var(--ink); flex: 0 0 34%; }
-  .next { background: var(--ok); color: #fff; }
+  .stepper .lbl { flex: 1; font-weight: 600; line-height: 1.25; }
+  .stepper .val { min-width: 96px; text-align: center; font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .stepper button { width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--accent); background: var(--card); color: var(--accent); font: inherit; font-size: 30px; font-weight: 600; line-height: 1; cursor: pointer; transition: transform .1s, background .12s; }
+  .stepper button:active { transform: scale(.92); background: var(--soft); }
+  textarea, input[type=text], input[type=date], input[type=time] { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 12px; margin-top: 10px; }
+  textarea:focus, input[type=text]:focus, input[type=date]:focus, input[type=time]:focus { outline: none; border-color: var(--accent); }
+  .nav { position: sticky; bottom: 0; display: flex; gap: 10px; margin-top: auto; padding: 14px 0 calc(14px + env(safe-area-inset-bottom)); background: var(--bg); }
+  .nav button { flex: 1; border: 0; border-radius: 18px; padding: 17px; font: inherit; font-weight: 800; font-size: 19px; cursor: pointer; transition: transform .1s, opacity .15s; }
+  .nav button:active { transform: scale(.98); }
+  .back { background: transparent; color: var(--muted); border: 2px solid var(--line) !important; flex: 0 0 32% !important; }
+  .next { background: var(--ok); color: var(--accent-ink); }
   .next[disabled] { background: var(--line); color: var(--muted); cursor: default; }
-  .rev { padding: 10px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; }
-  .rev b { display: block; }
-  .rev span { color: var(--muted); font-size: 15px; }
-  .rev button { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; white-space: nowrap; }
-  .done { text-align: center; padding: 20px 0; }
-  .done .big { font-size: 48px; }
-  .err { color: var(--hot); font-weight: 600; margin-top: 10px; }
-  .foot { color: var(--muted); font-size: 13px; text-align: center; margin-top: 12px; }
+  .rev { padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .rev:last-of-type { border-bottom: 0; }
+  .rev b { display: block; font-size: 14px; color: var(--muted); font-weight: 700; }
+  .rev span { font-weight: 600; }
+  .rev button { background: var(--soft); border: 0; color: var(--accent); font: inherit; font-weight: 700; font-size: 14px; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+  .done { text-align: center; padding: 18px 0 10px; }
+  .done svg { width: 84px; height: 84px; }
+  .done .tick { stroke-dasharray: 60; stroke-dashoffset: 60; animation: draw .6s .15s ease forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .err { color: var(--hot); font-weight: 700; margin-top: 12px; }
+  .foot { color: var(--muted); font-size: 12.5px; text-align: center; margin: 0 0 calc(10px + env(safe-area-inset-bottom)); }
 </style>
 </head>
 <body>
 <main>
-  <div class="top"><span id="stepLabel"></span><span>Pain Picker</span></div>
-  <div class="bar"><i id="barFill"></i></div>
+  <div class="top">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="var(--soft)" stroke="var(--accent)" stroke-width="2.5"/><circle cx="14" cy="18" r="2.4" fill="var(--ink)"/><circle cx="26" cy="18" r="2.4" fill="var(--ink)"/><path d="M13 26 Q20 31 27 26" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>Pain Picker</span>
+    </div>
+    <button class="mode" id="modeBtn" type="button" aria-label="Switch between light and dark">Dark mode</button>
+  </div>
+  <div class="progress"><div class="bar"><i id="barFill"></i></div><span id="stepLabel"></span></div>
   <div class="card" id="box"></div>
   <div class="nav" id="nav"></div>
-  <p class="foot">Your answers are saved to a private spreadsheet. Only your family can see them.</p>
+  <p class="foot">Your answers go to a private family spreadsheet.</p>
 </main>
 
 <template id="tplHead"><div class="heads">
@@ -196,12 +225,20 @@
     extra: "entry.281707570"
   };
 
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function todayStr() { var d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function nowStr() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function prettyDate(s) { var p = s.split("-"); var d = new Date(+p[0], +p[1] - 1, +p[2]); return d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }); }
+  function prettyTime(s) { var p = s.split(":"); var d = new Date(2000, 0, 1, +p[0], +p[1]); return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); }
+  function isDay() { return S.mode === "day"; }
+  function isCheck() { return S.mode === "check"; }
+
   var S = null;
   function fresh() {
     return {
-      pain: null, noPain: false, spots: {}, whole: false, notSure: false, start: {}, howLong: null,
+      mode: null, date: todayStr(), time: nowStr(), pain: null, noPain: false, spots: {}, whole: false, notSure: false, start: {}, howLong: null,
       sound: null, light: null, talk: null, nausea: null, threw: null, medicine: null, medNote: "",
-      period: null, exercise: null, tv: 0, school: 0, comp: 0, phone: 0, tvKinds: {}, compUses: {},
+      period: null, exercise: null, tv: 0, school: 0, homework: 0, comp: 0, phone: 0, tvKinds: {}, compUses: {},
       meal: "Breakfast", foods: { "Breakfast": { chips: {}, text: "" }, "Lunch": { chips: {}, text: "" }, "Dinner": { chips: {}, text: "" }, "Snacks and drinks": { chips: {}, text: "" } },
       water: null, otherMode: null, others: {}, sleep: null, jaw: null, aura: null
     };
@@ -213,6 +250,7 @@
   var mouths = ["M20 44 Q35 58 50 44","M20 45 Q35 56 50 45","M21 47 Q35 54 49 47","M22 49 Q35 53 48 49","M23 50 L47 50","M23 52 Q35 48 47 52","M22 54 Q35 46 48 54","M21 55 Q35 44 49 55","M20 56 Q35 42 50 56","M20 57 Q35 40 50 57"];
 
   var START = ["It woke me up","Started in the morning","Started around noon or afternoon","Started in the evening or night"];
+  var START_ICONS = { "It woke me up": "\uD83D\uDE34", "Started in the morning": "\uD83C\uDF05", "Started around noon or afternoon": "\u2600\uFE0F", "Started in the evening or night": "\uD83C\uDF19" };
   var HOWLONG = ["Less than 1 hour","1 to 3 hours","3 to 6 hours","More than 6 hours","All day","I still have it right now"];
   var LEVEL = ["No","A little","Yes, a lot"];
   var TALK = ["Yes, normally","It was hard to find words or talk clearly","I could not talk"];
@@ -246,7 +284,7 @@
   function keys(o) { return Object.keys(o); }
   function chosenSpots() { return S.whole ? ["Whole head"] : keys(S.spots); }
   function hasHeadache() { return S.pain !== null && !S.noPain; }
-  function compMinutes() { return S.school + S.comp; }
+  function compMinutes() { return S.school + S.homework + S.comp; }
 
   // building blocks
   function choice(options, get, set, opts) {
@@ -262,7 +300,7 @@
   function multi(options, map, opts) {
     var wrap = h("div", { "class": "row" });
     options.forEach(function (o) {
-      var b = h("button", { type: "button", "class": "chip", "aria-pressed": String(!!map[o]) }, [o]);
+      var b = h("button", { type: "button", "class": "chip", "aria-pressed": String(!!map[o]) }, [((opts && opts.icons && opts.icons[o]) ? opts.icons[o] + " " : "") + o]);
       b.onclick = function () { if (map[o]) delete map[o]; else map[o] = true; render(); };
       wrap.appendChild(b);
     });
@@ -292,6 +330,32 @@
   }
 
   var STEPS = [
+    { id: "when", title: "What are you telling me about?",
+      show: function () { return true; },
+      valid: function () { return !!S.mode && !!S.date && (S.mode === "day" || !!S.time); },
+      build: function (box) {
+        var row = h("div", { "class": "grid" });
+        [["check", "How I feel right now"], ["day", "My whole day"]].forEach(function (o) {
+          var b = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.mode === o[0]) }, [o[1]]);
+          b.onclick = function () { S.mode = o[0]; render(); };
+          row.appendChild(b);
+        });
+        box.appendChild(row);
+        box.appendChild(hint(S.mode === "check" ? "A quick check-in. You can do more than one a day." : S.mode === "day" ? "Everything about the day: food, water, screens, and how you felt." : "Pick one."));
+        box.appendChild(qtext("Which day?"));
+        var d = h("input", { type: "date", value: S.date, max: todayStr() });
+        d.onchange = function () { S.date = d.value; nextState(); };
+        box.appendChild(d);
+        if (S.mode === "check") {
+          box.appendChild(qtext("What time was it?"));
+          var tm = h("input", { type: "time", value: S.time });
+          tm.onchange = function () { S.time = tm.value; nextState(); };
+          box.appendChild(tm);
+        }
+        box.appendChild(hint("Forgot to log a day? Pick that day."));
+      },
+      summary: function () { return (S.mode === "day" ? "Whole day, " : "Right now, ") + prettyDate(S.date) + (S.mode === "check" ? " at " + prettyTime(S.time) : ""); } },
+
     { id: "pain", title: "How bad is the pain right now (or at its worst)?",
       show: function () { return true; },
       valid: function () { return S.noPain || S.pain !== null; },
@@ -347,7 +411,7 @@
 
     { id: "start", title: "When did it start?",
       show: hasHeadache, valid: function () { return true; },
-      build: function (box) { box.appendChild(hint("Pick all that apply, or skip.")); box.appendChild(multi(START, S.start)); },
+      build: function (box) { box.appendChild(hint("Pick all that apply, or skip.")); box.appendChild(multi(START, S.start, { icons: START_ICONS })); },
       summary: function () { return keys(S.start).join(", ") || "Skipped"; } },
 
     { id: "howlong", title: "How long did the headache last?",
@@ -393,7 +457,7 @@
       summary: function () { return S.medicine + (S.medNote ? " (" + S.medNote + ")" : ""); } },
 
     { id: "body", title: "Today",
-      show: function () { return true; }, valid: function () { return !!(S.period && S.exercise); },
+      show: isDay, valid: function () { return !!(S.period && S.exercise); },
       build: function (box) {
         box.appendChild(qtext("Do you have your period today?"));
         box.appendChild(choice(PERIOD, function () { return S.period; }, function (v) { S.period = v; }));
@@ -403,7 +467,7 @@
       summary: function () { return "Period: " + S.period + ". Exercise: " + S.exercise; } },
 
     { id: "screens", title: "Screens today",
-      show: function () { return true;},
+      show: isDay,
       valid: function () {
         if (S.tv > 0 && !keys(S.tvKinds).length) return false;
         if (compMinutes() > 0 && !keys(S.compUses).length) return false;
@@ -412,16 +476,17 @@
       build: function (box) {
         box.appendChild(hint("Tap + for each half hour. A grown-up can check Screen Time to help."));
         box.appendChild(stepper("TV", "", function () { return S.tv; }, function (v) { S.tv = v; }, 30, 600, fmtMin));
-        box.appendChild(stepper("Computer or tablet for school", "", function () { return S.school; }, function (v) { S.school = v; }, 30, 600, fmtMin));
-        box.appendChild(stepper("Computer or tablet, not school", "", function () { return S.comp; }, function (v) { S.comp = v; }, 30, 600, fmtMin));
+        box.appendChild(stepper("Computer or tablet at school (in class)", "", function () { return S.school; }, function (v) { S.school = v; }, 30, 600, fmtMin));
+        box.appendChild(stepper("Computer or tablet for homework at home", "", function () { return S.homework; }, function (v) { S.homework = v; }, 30, 600, fmtMin));
+        box.appendChild(stepper("Computer or tablet at home, not school", "", function () { return S.comp; }, function (v) { S.comp = v; }, 30, 600, fmtMin));
         box.appendChild(stepper("Phone or other screens", "", function () { return S.phone; }, function (v) { S.phone = v; }, 30, 600, fmtMin));
         if (S.tv > 0) { box.appendChild(qtext("What kind of shows did you watch?")); box.appendChild(multi(TVKINDS, S.tvKinds)); }
         if (compMinutes() > 0) { box.appendChild(qtext("What did you use the computer or tablet for?")); box.appendChild(multi(COMPUSES, S.compUses)); }
       },
-      summary: function () { return "TV " + fmtMin(S.tv) + ", school screens " + fmtMin(S.school) + ", other computer or tablet " + fmtMin(S.comp) + ", phone or other " + fmtMin(S.phone); } },
+      summary: function () { return "TV " + fmtMin(S.tv) + ", at school " + fmtMin(S.school) + ", homework " + fmtMin(S.homework) + ", computer or tablet at home " + fmtMin(S.comp) + ", phone or other " + fmtMin(S.phone); } },
 
     { id: "food", title: "What did you eat and drink?",
-      show: function () { return true; }, valid: function () { return true; },
+      show: isDay, valid: function () { return true; },
       build: function (box) {
         box.appendChild(hint("Pick a meal, then tap what you had. Skip anything you do not remember."));
         var tabs = h("div", { "class": "row" });
@@ -442,7 +507,7 @@
       summary: function () { return foodText() || "Nothing entered"; } },
 
     { id: "water", title: "How many full bottles of water did you drink?",
-      show: function () { return true; }, valid: function () { return S.water !== null; },
+      show: isDay, valid: function () { return S.water !== null; },
       build: function (box) {
         box.appendChild(hint("Your own water bottle."));
         var row = h("div", { "class": "grid" });
@@ -492,7 +557,7 @@
       summary: function () { return S.otherMode === "no" ? "Nothing else hurts" : keys(S.others).join(", "); } },
 
     { id: "more", title: "A few more things",
-      show: function () { return true; }, valid: function () { return S.sleep !== null && !!S.jaw && !!S.aura; },
+      show: isDay, valid: function () { return S.sleep !== null && !!S.jaw && !!S.aura; },
       build: function (box) {
         box.appendChild(stepper("Hours of sleep last night", "", function () { return S.sleep === null ? 8 : S.sleep; }, function (v) { S.sleep = v; }, 0.5, 14, function (v) { return v + " hr"; }));
         if (S.sleep === null) { S.sleep = 8; }
@@ -516,7 +581,7 @@
       } }
   ];
 
-  var cur = "pain", errMsg = "", saved = false, saving = false;
+  var cur = "when", errMsg = "", saved = false, saving = false;
 
   function visible() { return STEPS.filter(function (s) { return s.show(); }); }
   function stepIndex() { var v = visible(); for (var i = 0; i < v.length; i++) if (v[i].id === cur) return i; return 0; }
@@ -542,13 +607,13 @@
     if (saved) {
       box.appendChild(h("div", { "class": "done" }, [h("div", { "class": "big" }, ["✅"]), h("h1", {}, ["Saved!"]), h("p", { "class": "hint" }, ["Thank you. Feel better soon."])]));
       var again = h("button", { type: "button", "class": "pill", style: "width:100%" }, ["Start a new day"]);
-      again.onclick = function () { S = fresh(); saved = false; cur = "pain"; render(); window.scrollTo(0, 0); };
+      again.onclick = function () { S = fresh(); saved = false; cur = "when"; render(); window.scrollTo(0, 0); };
       box.appendChild(again);
       document.getElementById("stepLabel").textContent = ""; document.getElementById("barFill").style.width = "100%";
       return;
     }
     var v = visible(), i = stepIndex(), s = v[i];
-    document.getElementById("stepLabel").textContent = "Step " + (i + 1) + " of " + v.length;
+    document.getElementById("stepLabel").textContent = (i + 1) + " / " + v.length;
     document.getElementById("barFill").style.width = Math.round(((i + 1) / v.length) * 100) + "%";
     box.appendChild(h("h1", {}, [s.title]));
     s.build(box);
@@ -557,7 +622,7 @@
       var sv = h("button", { type: "button", "class": "next", id: "nextBtn" }, [saving ? "Saving..." : "Save my day"]);
       sv.disabled = saving; sv.onclick = submit; nav.appendChild(sv);
     } else {
-      var nx = h("button", { type: "button", "class": "next", id: "nextBtn" }, ["Next"]);
+      var nx = h("button", { type: "button", "class": "next", id: "nextBtn" }, [(i === v.length - 2) ? "Review" : "Next"]);
       nx.disabled = !s.valid(); nx.onclick = function () { go(1); }; nav.appendChild(nx);
     }
   }
@@ -576,23 +641,20 @@
     p.append(E.light, nh ? "No" : S.light);
     p.append(E.talk, nh ? "Yes, normally" : S.talk);
     p.append(E.nausea, S.nausea); p.append(E.threw, S.threw);
-    p.append(E.exercise, S.exercise); p.append(E.medicine, S.medicine); p.append(E.period, S.period);
-    p.append(E.tv, tvRange(S.tv));
-    if (S.tv > 0) keys(S.tvKinds).forEach(function (x) { p.append(E.tvkinds, x); }); else p.append(E.tvkinds, "No TV today");
-    p.append(E.comp, compRange(compMinutes()));
-    if (compMinutes() > 0) keys(S.compUses).forEach(function (x) { p.append(E.compuse, x); }); else p.append(E.compuse, "Did not use a computer");
-    p.append(E.food, foodText() || "Nothing entered");
-    p.append(E.water, bottles(S.water));
+    p.append(E.medicine, S.medicine);
     if (S.otherMode === "yes") keys(S.others).forEach(function (x) { p.append(E.other, x); }); else p.append(E.other, "Nothing else hurts");
-    var extra = [
-      "TV minutes: " + S.tv,
-      "Computer or tablet for school, minutes: " + S.school,
-      "Computer or tablet not school, minutes: " + S.comp,
-      "Phone or other screens, minutes: " + S.phone,
-      "Sleep last night: " + S.sleep + " hours",
-      "Jaw or face sore on waking: " + S.jaw,
-      "Zigzag lines or blurry spots: " + S.aura
-    ];
+    var extra = ["Entry type: " + (isDay() ? "Whole day" : "Right now"), "Entry date: " + S.date];
+    if (isCheck()) extra.push("Entry time: " + S.time);
+    if (isDay()) {
+      p.append(E.exercise, S.exercise); p.append(E.period, S.period);
+      p.append(E.tv, tvRange(S.tv));
+      if (S.tv > 0) keys(S.tvKinds).forEach(function (x) { p.append(E.tvkinds, x); }); else p.append(E.tvkinds, "No TV today");
+      p.append(E.comp, compRange(compMinutes()));
+      if (compMinutes() > 0) keys(S.compUses).forEach(function (x) { p.append(E.compuse, x); }); else p.append(E.compuse, "Did not use a computer");
+      p.append(E.food, foodText() || "Nothing entered");
+      p.append(E.water, bottles(S.water));
+      extra.push("TV minutes: " + S.tv, "Computer or tablet at school (in class), minutes: " + S.school, "Computer or tablet for homework at home, minutes: " + S.homework, "Computer or tablet at home not school, minutes: " + S.comp, "Phone or other screens, minutes: " + S.phone, "Sleep last night: " + S.sleep + " hours", "Jaw or face sore on waking: " + S.jaw, "Zigzag lines or blurry spots: " + S.aura);
+    }
     if (S.medicine === "Yes" && S.medNote) extra.push("Medicine: " + S.medNote);
     if (S.notSure) extra.push("Headache location: not sure");
     p.append(E.extra, extra.join("\n"));
@@ -608,6 +670,15 @@
       saving = false; errMsg = "Could not save. Check the internet and try again."; render();
     });
   }
+
+  (function () {
+    var root = document.documentElement, btn = document.getElementById("modeBtn");
+    var saved = null; try { saved = localStorage.getItem("pp-theme"); } catch (e) {}
+    var dark = saved ? saved === "dark" : (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+    function apply() { root.setAttribute("data-theme", dark ? "dark" : "light"); btn.textContent = dark ? "Light mode" : "Dark mode"; }
+    btn.onclick = function () { dark = !dark; try { localStorage.setItem("pp-theme", dark ? "dark" : "light"); } catch (e) {} apply(); };
+    apply();
+  })();
 
   render();
 </script>
