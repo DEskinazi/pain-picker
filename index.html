@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pain Picker</title>
+<style>
+  :root {
+    --bg: #f6f3ff; --card: #ffffff; --ink: #2b2540; --muted: #6b6485;
+    --accent: #6f4fd8; --line: #d9d2f2; --hot: #e8505b; --ok: #3aa86b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1d1a2b; --card: #2a2640; --ink: #f1eefc; --muted: #b3acd0; --line: #4a4468; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 26px; margin: 8px 0 4px; }
+  p.sub { margin: 0 0 16px; color: var(--muted); }
+  section { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 16px; }
+  h2 { font-size: 20px; margin: 0 0 4px; }
+  .hint { color: var(--muted); font-size: 15px; margin: 0 0 12px; }
+  .faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .face { border: 3px solid transparent; background: transparent; border-radius: 14px; padding: 6px 2px; cursor: pointer; color: var(--ink); font: inherit; text-align: center; }
+  .face svg { width: 100%; max-width: 70px; height: auto; display: block; margin: 0 auto 2px; }
+  .face .n { font-weight: 700; font-size: 20px; }
+  .face .w { font-size: 12px; color: var(--muted); min-height: 30px; line-height: 1.15; }
+  .face[aria-pressed="true"] { border-color: var(--accent); background: rgba(111,79,216,.12); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  button.pill { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 10px 16px; font: inherit; cursor: pointer; }
+  button.pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .heads { display: flex; gap: 8px; justify-content: center; }
+  .heads svg { width: 100%; max-width: 330px; height: auto; touch-action: manipulation; }
+  .zone { fill: rgba(111,79,216,.10); stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; cursor: pointer; }
+  .zone:hover { fill: rgba(111,79,216,.25); }
+  .zone.on { fill: rgba(232,80,91,.65); stroke: var(--hot); stroke-dasharray: none; stroke-width: 3; }
+  .skin { fill: #f2c9a5; stroke: #b98a63; stroke-width: 3; }
+  .hair { fill: #6b4a33; }
+  .vlabel { font-size: 15px; fill: var(--muted); text-anchor: middle; }
+  .picked { margin: 10px 0 0; min-height: 26px; font-weight: 600; }
+  .go { display: block; width: 100%; background: var(--ok); color: #fff; border: 0; border-radius: 16px; padding: 16px; font: inherit; font-weight: 700; font-size: 20px; cursor: pointer; }
+  .go[disabled] { background: var(--line); color: var(--muted); cursor: default; }
+  .note { color: var(--muted); font-size: 14px; text-align: center; margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>How does your head feel?</h1>
+  <p class="sub">Tap the face, then tap where it hurts. Then press the green button.</p>
+
+  <section aria-labelledby="h-pain">
+    <h2 id="h-pain">1. How bad is the pain right now (or at its worst)?</h2>
+    <p class="hint">1 is barely there. 10 is the worst pain ever.</p>
+    <div class="faces" id="faces"></div>
+    <div class="row">
+      <button class="pill" id="nopain" aria-pressed="false">I have no headache today</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-where" id="whereSection">
+    <h2 id="h-where">2. Where does it hurt?</h2>
+    <p class="hint">Tap every spot that hurts. Tap again to undo. Left and right are YOUR left and right.</p>
+    <div class="heads">
+      <svg viewBox="0 0 300 340" role="group" aria-label="Front of the head">
+        <ellipse class="hair" cx="150" cy="130" rx="98" ry="110"/>
+        <ellipse class="skin" cx="150" cy="165" rx="82" ry="98"/>
+        <rect class="skin" x="125" y="250" width="50" height="50"/>
+        <path d="M70 140 Q150 40 230 140 Q200 80 150 78 Q100 80 70 140Z" class="hair"/>
+        <circle cx="118" cy="160" r="7" fill="#2b2540"/><circle cx="182" cy="160" r="7" fill="#2b2540"/>
+        <path d="M122 214 Q150 234 178 214" fill="none" stroke="#2b2540" stroke-width="4" stroke-linecap="round"/>
+        <ellipse class="zone" data-v="Top of head" cx="150" cy="50" rx="55" ry="20"/>
+        <rect class="zone" data-v="Forehead" x="98" y="88" width="104" height="40" rx="20"/>
+        <ellipse class="zone" data-v="Right side (temple)" cx="82" cy="150" rx="16" ry="32"/>
+        <ellipse class="zone" data-v="Left side (temple)" cx="218" cy="150" rx="16" ry="32"/>
+        <circle class="zone" data-v="Behind right eye" cx="118" cy="160" r="20"/>
+        <circle class="zone" data-v="Behind left eye" cx="182" cy="160" r="20"/>
+        <rect class="zone" data-v="Neck" x="122" y="256" width="56" height="40" rx="10"/>
+        <text class="vlabel" x="150" y="330">Front (your face)</text>
+      </svg>
+      <svg viewBox="0 0 300 340" role="group" aria-label="Back of the head">
+        <ellipse class="hair" cx="150" cy="165" rx="92" ry="105"/>
+        <rect class="skin" x="125" y="250" width="50" height="50"/>
+        <ellipse class="zone" data-v="Top of head" cx="150" cy="70" rx="55" ry="20"/>
+        <ellipse class="zone" data-v="Back of head" cx="150" cy="165" rx="68" ry="55"/>
+        <rect class="zone" data-v="Neck" x="122" y="256" width="56" height="40" rx="10"/>
+        <text class="vlabel" x="150" y="330">Back of your head</text>
+      </svg>
+    </div>
+    <div class="row"><button class="pill" id="whole" aria-pressed="false">My whole head</button></div>
+    <p class="picked" id="picked" aria-live="polite"></p>
+  </section>
+
+  <button class="go" id="go" disabled>Open the rest of the form</button>
+  <p class="note">This picks your answers for you. You finish the other questions on the next screen and press Submit there.</p>
+</main>
+
+<script>
+  // Paste the published form link here (the one that ends in /viewform). Leave off anything after viewform.
+  var FORM_URL = "PASTE_FORM_LINK_HERE";
+
+  var ENTRY_YESNO = "entry.1976648301";
+  var ENTRY_PAIN  = "entry.1037874834";
+  var ENTRY_WHERE = "entry.698254753";
+
+  var pain = null, noPain = false, whole = false, spots = {};
+
+  var words = ["Barely","Very mild","Mild","Tolerable","Bothers me","Hurts","Really hurts","Horrible","Awful","Worst ever"];
+  // Mouth curve and color per level, from smiling green to crying red.
+  var colors = ["#7fcf6a","#8fd062","#a9d25a","#c5d352","#e3d04b","#f0b648","#f09a45","#ee7c47","#e9604c","#dd4350"];
+  var mouths = [
+    "M20 44 Q35 58 50 44","M20 45 Q35 56 50 45","M21 47 Q35 54 49 47","M22 49 Q35 53 48 49","M23 50 L47 50",
+    "M23 52 Q35 48 47 52","M22 54 Q35 46 48 54","M21 55 Q35 44 49 55","M20 56 Q35 42 50 56","M20 57 Q35 40 50 57"
+  ];
+
+  var facesEl = document.getElementById("faces");
+  for (var i = 1; i <= 10; i++) {
+    var b = document.createElement("button");
+    b.className = "face"; b.type = "button"; b.setAttribute("aria-pressed", "false");
+    b.setAttribute("aria-label", i + " out of 10, " + words[i-1]);
+    var tears = i >= 9 ? '<path d="M24 36 q-3 8 0 10 M46 36 q3 8 0 10" fill="none" stroke="#4a8fd8" stroke-width="3" stroke-linecap="round"/>' : "";
+    var brows = i >= 6 ? '<path d="M18 22 L30 27 M52 22 L40 27" stroke="#2b2540" stroke-width="3" stroke-linecap="round"/>' : "";
+    b.innerHTML = '<svg viewBox="0 0 70 70" aria-hidden="true"><circle cx="35" cy="35" r="31" fill="' + colors[i-1] + '" stroke="#2b2540" stroke-width="3"/>' +
+      '<circle cx="25" cy="30" r="3.5" fill="#2b2540"/><circle cx="45" cy="30" r="3.5" fill="#2b2540"/>' + brows + tears +
+      '<path d="' + mouths[i-1] + '" fill="none" stroke="#2b2540" stroke-width="3.5" stroke-linecap="round"/></svg>' +
+      '<div class="n">' + i + '</div><div class="w">' + words[i-1] + '</div>';
+    (function (n, el) {
+      el.addEventListener("click", function () { pain = n; noPain = false; render(); });
+    })(i, b);
+    facesEl.appendChild(b);
+  }
+
+  document.getElementById("nopain").addEventListener("click", function () {
+    noPain = !noPain; if (noPain) { pain = null; spots = {}; whole = false; } render();
+  });
+  document.getElementById("whole").addEventListener("click", function () {
+    whole = !whole; if (whole) { noPain = false; } render();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".zone"), function (z) {
+    z.addEventListener("click", function () {
+      var v = z.getAttribute("data-v"); noPain = false; whole = false;
+      if (spots[v]) { delete spots[v]; } else { spots[v] = true; }
+      render();
+    });
+  });
+
+  function chosenSpots() { return whole ? ["Whole head"] : Object.keys(spots); }
+
+  function render() {
+    Array.prototype.forEach.call(facesEl.children, function (el, idx) {
+      el.setAttribute("aria-pressed", String(pain === idx + 1));
+    });
+    document.getElementById("nopain").setAttribute("aria-pressed", String(noPain));
+    document.getElementById("whole").setAttribute("aria-pressed", String(whole));
+    Array.prototype.forEach.call(document.querySelectorAll(".zone"), function (z) {
+      z.classList.toggle("on", !!spots[z.getAttribute("data-v")] && !whole);
+    });
+    var s = chosenSpots();
+    document.getElementById("picked").textContent = noPain ? "No headache today." : (s.length ? "It hurts: " + s.join(", ") : "");
+    document.getElementById("whereSection").style.opacity = noPain ? "0.4" : "1";
+    document.getElementById("go").disabled = !(noPain || pain !== null);
+  }
+
+  document.getElementById("go").addEventListener("click", function () {
+    if (FORM_URL.indexOf("PASTE") === 0) { alert("The form link has not been added yet. Ask Mom."); return; }
+    var q = ["usp=pp_url"];
+    if (noPain) {
+      q.push(ENTRY_YESNO + "=No");
+    } else {
+      q.push(ENTRY_YESNO + "=Yes");
+      q.push(ENTRY_PAIN + "=" + pain);
+      chosenSpots().forEach(function (v) { q.push(ENTRY_WHERE + "=" + encodeURIComponent(v)); });
+    }
+    window.location.href = FORM_URL + (FORM_URL.indexOf("?") < 0 ? "?" : "&") + q.join("&");
+  });
+
+  render();
+</script>
+</body>
+</html>
