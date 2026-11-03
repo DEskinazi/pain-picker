@@ -93,6 +93,67 @@
     <p class="picked" id="picked" aria-live="polite"></p>
   </section>
 
+  <section aria-labelledby="h-other" id="otherSection">
+    <h2 id="h-other">3. Does anything else hurt?</h2>
+    <p class="hint">Besides your head.</p>
+    <div class="row" style="margin-top:0">
+      <button class="pill" id="otherNo" aria-pressed="false">No, just my head</button>
+      <button class="pill" id="otherYes" aria-pressed="false">Yes, somewhere else</button>
+    </div>
+    <div id="bodyWrap" hidden>
+      <p class="hint" style="margin-top:12px">Tap every spot that hurts. Tap again to undo.</p>
+      <div class="heads">
+        <svg viewBox="0 0 200 410" role="group" aria-label="Front of the body">
+          <rect class="skin" x="90" y="60" width="20" height="26"/>
+          <rect class="skin" x="30" y="84" width="24" height="136" rx="12"/>
+          <rect class="skin" x="146" y="84" width="24" height="136" rx="12"/>
+          <rect class="skin" x="60" y="80" width="80" height="142" rx="26"/>
+          <rect class="skin" x="62" y="214" width="36" height="180" rx="16"/>
+          <rect class="skin" x="102" y="214" width="36" height="180" rx="16"/>
+          <circle class="skin" cx="100" cy="38" r="28"/>
+          <path class="hair" d="M72 36 C70 6 130 6 128 36 C120 22 80 22 72 36Z"/>
+          <circle cx="90" cy="42" r="3" fill="#2b2540"/><circle cx="110" cy="42" r="3" fill="#2b2540"/>
+          <path d="M91 54 Q100 60 109 54" fill="none" stroke="#2b2540" stroke-width="2.5" stroke-linecap="round"/>
+          <ellipse class="zone" data-o="Throat" cx="100" cy="72" rx="13" ry="9"/>
+          <ellipse class="zone" data-o="Neck or shoulders" cx="72" cy="92" rx="18" ry="11"/>
+          <ellipse class="zone" data-o="Neck or shoulders" cx="128" cy="92" rx="18" ry="11"/>
+          <rect class="zone" data-o="Arms" x="28" y="112" width="28" height="100" rx="14"/>
+          <rect class="zone" data-o="Arms" x="144" y="112" width="28" height="100" rx="14"/>
+          <ellipse class="zone" data-o="Stomach or belly" cx="100" cy="146" rx="34" ry="26"/>
+          <ellipse class="zone" data-o="Cramps (lower belly)" cx="100" cy="195" rx="32" ry="18"/>
+          <rect class="zone" data-o="Legs" x="60" y="236" width="40" height="154" rx="18"/>
+          <rect class="zone" data-o="Legs" x="100" y="236" width="40" height="154" rx="18"/>
+          <text class="vlabel" x="100" y="406">Front</text>
+        </svg>
+        <svg viewBox="0 0 200 410" role="group" aria-label="Back of the body">
+          <rect class="skin" x="90" y="60" width="20" height="26"/>
+          <rect class="skin" x="30" y="84" width="24" height="136" rx="12"/>
+          <rect class="skin" x="146" y="84" width="24" height="136" rx="12"/>
+          <rect class="skin" x="60" y="80" width="80" height="142" rx="26"/>
+          <rect class="skin" x="62" y="214" width="36" height="180" rx="16"/>
+          <rect class="skin" x="102" y="214" width="36" height="180" rx="16"/>
+          <circle class="hair" cx="100" cy="38" r="28"/>
+          <ellipse class="zone" data-o="Neck or shoulders" cx="100" cy="76" rx="14" ry="10"/>
+          <ellipse class="zone" data-o="Neck or shoulders" cx="70" cy="94" rx="16" ry="10"/>
+          <ellipse class="zone" data-o="Neck or shoulders" cx="130" cy="94" rx="16" ry="10"/>
+          <rect class="zone" data-o="Back" x="68" y="108" width="64" height="100" rx="22"/>
+          <rect class="zone" data-o="Arms" x="28" y="112" width="28" height="100" rx="14"/>
+          <rect class="zone" data-o="Arms" x="144" y="112" width="28" height="100" rx="14"/>
+          <rect class="zone" data-o="Legs" x="60" y="236" width="40" height="154" rx="18"/>
+          <rect class="zone" data-o="Legs" x="100" y="236" width="40" height="154" rx="18"/>
+          <text class="vlabel" x="100" y="406">Back</text>
+        </svg>
+      </div>
+      <p class="hint" style="margin-top:12px">Also tap if these bother you:</p>
+      <div class="row" style="margin-top:0">
+        <button class="pill otherpill" data-o="Ears" aria-pressed="false">Ears</button>
+        <button class="pill otherpill" data-o="Eyes" aria-pressed="false">Eyes</button>
+        <button class="pill otherpill" data-o="Feeling dizzy" aria-pressed="false">Feeling dizzy</button>
+      </div>
+      <p class="picked" id="otherPicked" aria-live="polite"></p>
+    </div>
+  </section>
+
   <button class="go" id="go" disabled>Open the rest of the form</button>
   <p class="note">This picks your answers for you. You finish the other questions on the next screen and press Submit there.</p>
 </main>
@@ -106,6 +167,8 @@
   var ENTRY_WHERE = "entry.698254753";
 
   var pain = null, noPain = false, whole = false, spots = {};
+  var otherMode = null, others = {};
+  var ENTRY_OTHER = "entry.2058593937";
 
   var words = ["Barely","Very mild","Mild","Tolerable","Bothers me","Hurts","Really hurts","Horrible","Awful","Worst ever"];
   // Mouth curve and color per level, from smiling green to crying red.
@@ -140,10 +203,20 @@
   document.getElementById("whole").addEventListener("click", function () {
     whole = !whole; if (whole) { noPain = false; } render();
   });
-  Array.prototype.forEach.call(document.querySelectorAll(".zone"), function (z) {
+  Array.prototype.forEach.call(document.querySelectorAll(".zone[data-v]"), function (z) {
     z.addEventListener("click", function () {
       var v = z.getAttribute("data-v"); noPain = false; whole = false;
       if (spots[v]) { delete spots[v]; } else { spots[v] = true; }
+      render();
+    });
+  });
+
+  document.getElementById("otherNo").addEventListener("click", function () { otherMode = "no"; others = {}; render(); });
+  document.getElementById("otherYes").addEventListener("click", function () { otherMode = "yes"; render(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".zone[data-o], .otherpill"), function (z) {
+    z.addEventListener("click", function () {
+      var v = z.getAttribute("data-o");
+      if (others[v]) { delete others[v]; } else { others[v] = true; }
       render();
     });
   });
@@ -156,12 +229,23 @@
     });
     document.getElementById("nopain").setAttribute("aria-pressed", String(noPain));
     document.getElementById("whole").setAttribute("aria-pressed", String(whole));
-    Array.prototype.forEach.call(document.querySelectorAll(".zone"), function (z) {
+    Array.prototype.forEach.call(document.querySelectorAll(".zone[data-v]"), function (z) {
       z.classList.toggle("on", !!spots[z.getAttribute("data-v")] && !whole);
     });
     var s = chosenSpots();
     document.getElementById("picked").textContent = noPain ? "No headache today." : (s.length ? "It hurts: " + s.join(", ") : "");
     document.getElementById("whereSection").style.opacity = noPain ? "0.4" : "1";
+    document.getElementById("otherNo").setAttribute("aria-pressed", String(otherMode === "no"));
+    document.getElementById("otherYes").setAttribute("aria-pressed", String(otherMode === "yes"));
+    document.getElementById("bodyWrap").hidden = otherMode !== "yes";
+    Array.prototype.forEach.call(document.querySelectorAll(".zone[data-o]"), function (z) {
+      z.classList.toggle("on", !!others[z.getAttribute("data-o")]);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".otherpill"), function (b) {
+      b.setAttribute("aria-pressed", String(!!others[b.getAttribute("data-o")]));
+    });
+    var ok = Object.keys(others);
+    document.getElementById("otherPicked").textContent = ok.length ? "Also hurts: " + ok.join(", ") : "";
     document.getElementById("go").disabled = !(noPain || pain !== null);
   }
 
@@ -175,6 +259,8 @@
       q.push(ENTRY_PAIN + "=" + pain);
       chosenSpots().forEach(function (v) { q.push(ENTRY_WHERE + "=" + encodeURIComponent(v)); });
     }
+    if (otherMode === "no") { q.push(ENTRY_OTHER + "=" + encodeURIComponent("Nothing else hurts")); }
+    if (otherMode === "yes") { Object.keys(others).forEach(function (v) { q.push(ENTRY_OTHER + "=" + encodeURIComponent(v)); }); }
     window.location.href = FORM_URL + (FORM_URL.indexOf("?") < 0 ? "?" : "&") + q.join("&");
   });
 
