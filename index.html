@@ -75,6 +75,8 @@
         <ellipse class="zone" data-v="Left side (temple)" cx="222" cy="135" rx="14" ry="24"/>
         <circle class="zone" data-v="Behind right eye" cx="116" cy="165" r="21"/>
         <circle class="zone" data-v="Behind left eye" cx="184" cy="165" r="21"/>
+        <ellipse class="zone" data-v="Jaw or cheek (left side)" cx="204" cy="214" rx="11" ry="30" transform="rotate(-32 204 214)"/>
+        <ellipse class="zone" data-v="Jaw or cheek (right side)" cx="96" cy="214" rx="11" ry="30" transform="rotate(32 96 214)"/>
         <text class="vlabel" x="150" y="330">Front (your face)</text>
       </svg>
       <svg viewBox="0 0 300 340" role="group" aria-label="Back of the head">
@@ -103,45 +105,75 @@
     <div id="bodyWrap" hidden>
       <p class="hint" style="margin-top:12px">Tap every spot that hurts. Tap again to undo.</p>
       <div class="heads">
-        <svg viewBox="0 0 200 410" role="group" aria-label="Front of the body">
+        <svg viewBox="0 0 200 430" role="group" aria-label="Front of the body">
           <rect class="skin" x="90" y="60" width="20" height="26"/>
-          <rect class="skin" x="30" y="84" width="24" height="136" rx="12"/>
-          <rect class="skin" x="146" y="84" width="24" height="136" rx="12"/>
+          <rect class="skin" x="30" y="84" width="24" height="136" rx="12"/><rect class="skin" x="146" y="84" width="24" height="136" rx="12"/>
+          <circle class="skin" cx="42" cy="228" r="12"/><circle class="skin" cx="158" cy="228" r="12"/>
           <rect class="skin" x="60" y="80" width="80" height="142" rx="26"/>
-          <rect class="skin" x="62" y="214" width="36" height="180" rx="16"/>
-          <rect class="skin" x="102" y="214" width="36" height="180" rx="16"/>
+          <rect class="skin" x="62" y="214" width="36" height="180" rx="16"/><rect class="skin" x="102" y="214" width="36" height="180" rx="16"/>
+          <ellipse class="skin" cx="80" cy="398" rx="20" ry="8"/><ellipse class="skin" cx="120" cy="398" rx="20" ry="8"/>
           <circle class="skin" cx="100" cy="38" r="28"/>
-          <path class="hair" d="M72 36 C70 6 130 6 128 36 C120 22 80 22 72 36Z"/>
+          <path class="hair" d="M72 36 C70 -4 130 -4 128 36 C120 20 80 20 72 36Z"/>
           <circle cx="90" cy="42" r="3" fill="#2b2540"/><circle cx="110" cy="42" r="3" fill="#2b2540"/>
           <path d="M92 55 L108 55" fill="none" stroke="#2b2540" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="100" cy="166" r="2.5" fill="#b98a63"/>
           <ellipse class="zone" data-o="Throat" cx="100" cy="72" rx="13" ry="9"/>
-          <ellipse class="zone" data-o="Neck or shoulders" cx="72" cy="92" rx="18" ry="11"/>
-          <ellipse class="zone" data-o="Neck or shoulders" cx="128" cy="92" rx="18" ry="11"/>
-          <rect class="zone" data-o="Arms" x="28" y="112" width="28" height="100" rx="14"/>
-          <rect class="zone" data-o="Arms" x="144" y="112" width="28" height="100" rx="14"/>
-          <ellipse class="zone" data-o="Stomach or belly" cx="100" cy="146" rx="34" ry="26"/>
-          <ellipse class="zone" data-o="Cramps (lower belly)" cx="100" cy="195" rx="32" ry="18"/>
-          <rect class="zone" data-o="Legs" x="60" y="236" width="40" height="154" rx="18"/>
-          <rect class="zone" data-o="Legs" x="100" y="236" width="40" height="154" rx="18"/>
-          <text class="vlabel" x="100" y="406">Front</text>
+          <ellipse class="zone" data-o="Upper belly (stomach, around the belly button)" cx="100" cy="140" rx="32" ry="22"/>
+          <ellipse class="zone" data-o="Lower belly (cramps, below the belly button)" cx="100" cy="192" rx="30" ry="17"/>
+          <ellipse class="zone" data-o="Shoulders" cx="70" cy="92" rx="17" ry="11"/>
+          <ellipse class="zone" data-o="Shoulders" cx="130" cy="92" rx="17" ry="11"/>
+          <rect class="zone" data-o="Upper arm" x="28" y="104" width="28" height="46" rx="14"/>
+          <rect class="zone" data-o="Upper arm" x="144" y="104" width="28" height="46" rx="14"/>
+          <ellipse class="zone" data-o="Elbow" cx="42" cy="158" rx="15" ry="9"/>
+          <circle class="zone" data-o="Wrist or hand" cx="42" cy="228" r="15"/>
+          <ellipse class="zone" data-o="Elbow" cx="158" cy="158" rx="15" ry="9"/>
+          <circle class="zone" data-o="Wrist or hand" cx="158" cy="228" r="15"/>
+          <rect class="zone" data-o="Forearm" x="28" y="170" width="28" height="40" rx="14"/>
+          <rect class="zone" data-o="Forearm" x="144" y="170" width="28" height="40" rx="14"/>
+          <ellipse class="zone" data-o="Hip" cx="72" cy="224" rx="17" ry="13"/>
+          <ellipse class="zone" data-o="Hip" cx="128" cy="224" rx="17" ry="13"/>
+          <rect class="zone" data-o="Thigh" x="62" y="244" width="36" height="58" rx="16"/>
+          <rect class="zone" data-o="Thigh" x="102" y="244" width="36" height="58" rx="16"/>
+          <ellipse class="zone" data-o="Knee" cx="80" cy="316" rx="18" ry="11"/>
+          <ellipse class="zone" data-o="Knee" cx="120" cy="316" rx="18" ry="11"/>
+          <rect class="zone" data-o="Calf or shin" x="64" y="332" width="32" height="40" rx="14"/>
+          <rect class="zone" data-o="Calf or shin" x="104" y="332" width="32" height="40" rx="14"/>
+          <ellipse class="zone" data-o="Ankle or foot" cx="80" cy="388" rx="19" ry="14"/>
+          <ellipse class="zone" data-o="Ankle or foot" cx="120" cy="388" rx="19" ry="14"/>
+          <text class="vlabel" x="100" y="424">Front</text>
         </svg>
-        <svg viewBox="0 0 200 410" role="group" aria-label="Back of the body">
+        <svg viewBox="0 0 200 430" role="group" aria-label="Back of the body">
           <rect class="skin" x="90" y="60" width="20" height="26"/>
-          <rect class="skin" x="30" y="84" width="24" height="136" rx="12"/>
-          <rect class="skin" x="146" y="84" width="24" height="136" rx="12"/>
+          <rect class="skin" x="30" y="84" width="24" height="136" rx="12"/><rect class="skin" x="146" y="84" width="24" height="136" rx="12"/>
+          <circle class="skin" cx="42" cy="228" r="12"/><circle class="skin" cx="158" cy="228" r="12"/>
           <rect class="skin" x="60" y="80" width="80" height="142" rx="26"/>
-          <rect class="skin" x="62" y="214" width="36" height="180" rx="16"/>
-          <rect class="skin" x="102" y="214" width="36" height="180" rx="16"/>
+          <rect class="skin" x="62" y="214" width="36" height="180" rx="16"/><rect class="skin" x="102" y="214" width="36" height="180" rx="16"/>
+          <ellipse class="skin" cx="80" cy="398" rx="20" ry="8"/><ellipse class="skin" cx="120" cy="398" rx="20" ry="8"/>
           <circle class="hair" cx="100" cy="38" r="28"/>
-          <ellipse class="zone" data-o="Neck or shoulders" cx="100" cy="76" rx="14" ry="10"/>
-          <ellipse class="zone" data-o="Neck or shoulders" cx="70" cy="94" rx="16" ry="10"/>
-          <ellipse class="zone" data-o="Neck or shoulders" cx="130" cy="94" rx="16" ry="10"/>
-          <rect class="zone" data-o="Back" x="68" y="108" width="64" height="100" rx="22"/>
-          <rect class="zone" data-o="Arms" x="28" y="112" width="28" height="100" rx="14"/>
-          <rect class="zone" data-o="Arms" x="144" y="112" width="28" height="100" rx="14"/>
-          <rect class="zone" data-o="Legs" x="60" y="236" width="40" height="154" rx="18"/>
-          <rect class="zone" data-o="Legs" x="100" y="236" width="40" height="154" rx="18"/>
-          <text class="vlabel" x="100" y="406">Back</text>
+          <rect class="zone" data-o="Upper back" x="68" y="100" width="64" height="34" rx="14"/>
+          <rect class="zone" data-o="Middle back" x="68" y="138" width="64" height="34" rx="14"/>
+          <rect class="zone" data-o="Lower back" x="68" y="176" width="64" height="36" rx="14"/>
+          <ellipse class="zone" data-o="Shoulders" cx="70" cy="92" rx="17" ry="11"/>
+          <ellipse class="zone" data-o="Shoulders" cx="130" cy="92" rx="17" ry="11"/>
+          <rect class="zone" data-o="Upper arm" x="28" y="104" width="28" height="46" rx="14"/>
+          <rect class="zone" data-o="Upper arm" x="144" y="104" width="28" height="46" rx="14"/>
+          <ellipse class="zone" data-o="Elbow" cx="42" cy="158" rx="15" ry="9"/>
+          <circle class="zone" data-o="Wrist or hand" cx="42" cy="228" r="15"/>
+          <ellipse class="zone" data-o="Elbow" cx="158" cy="158" rx="15" ry="9"/>
+          <circle class="zone" data-o="Wrist or hand" cx="158" cy="228" r="15"/>
+          <rect class="zone" data-o="Forearm" x="28" y="170" width="28" height="40" rx="14"/>
+          <rect class="zone" data-o="Forearm" x="144" y="170" width="28" height="40" rx="14"/>
+          <ellipse class="zone" data-o="Hip" cx="72" cy="224" rx="17" ry="13"/>
+          <ellipse class="zone" data-o="Hip" cx="128" cy="224" rx="17" ry="13"/>
+          <rect class="zone" data-o="Thigh" x="62" y="244" width="36" height="58" rx="16"/>
+          <rect class="zone" data-o="Thigh" x="102" y="244" width="36" height="58" rx="16"/>
+          <ellipse class="zone" data-o="Knee" cx="80" cy="316" rx="18" ry="11"/>
+          <ellipse class="zone" data-o="Knee" cx="120" cy="316" rx="18" ry="11"/>
+          <rect class="zone" data-o="Calf or shin" x="64" y="332" width="32" height="40" rx="14"/>
+          <rect class="zone" data-o="Calf or shin" x="104" y="332" width="32" height="40" rx="14"/>
+          <ellipse class="zone" data-o="Ankle or foot" cx="80" cy="388" rx="19" ry="14"/>
+          <ellipse class="zone" data-o="Ankle or foot" cx="120" cy="388" rx="19" ry="14"/>
+          <text class="vlabel" x="100" y="424">Back</text>
         </svg>
       </div>
       <p class="hint" style="margin-top:12px">Also tap if these bother you:</p>
