@@ -232,6 +232,7 @@
   function prettyTime(s) { var p = s.split(":"); var d = new Date(2000, 0, 1, +p[0], +p[1]); return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); }
   function isDay() { return S.mode === "day"; }
   function isCheck() { return S.mode === "check"; }
+  function isAdd() { return S.mode === "add"; }
 
   var S = null;
   function fresh() {
@@ -240,7 +241,7 @@
       sound: null, light: null, talk: null, nausea: null, threw: null, better: null, medicine: null, medNote: "",
       period: null, exercise: null, tv: 0, school: 0, homework: 0, comp: 0, phone: 0, tvKinds: {}, compUses: {},
       meal: "Breakfast", foods: { "Breakfast": { chips: {}, text: "" }, "Lunch": { chips: {}, text: "" }, "Dinner": { chips: {}, text: "" }, "Snacks and drinks": { chips: {}, text: "" } },
-      water: null, otherMode: null, others: {}, sleep: null, jaw: null, aura: null
+      water: null, otherMode: null, others: {}, sleep: null, sleepSet: false, jaw: null, aura: null
     };
   }
   S = fresh();
@@ -284,7 +285,7 @@
   function bottles(n) { return n === 0 ? "0 bottles" : n === 1 ? "1 bottle" : n >= 6 ? "6 or more bottles" : n + " bottles"; }
   function keys(o) { return Object.keys(o); }
   function chosenSpots() { return S.whole ? ["Whole head"] : keys(S.spots); }
-  function hasHeadache() { return !S.noPain; }
+  function hasHeadache() { return !S.noPain && !isAdd(); }
   function compMinutes() { return S.school + S.homework + S.comp; }
 
   // building blocks
@@ -333,16 +334,16 @@
   var STEPS = [
     { id: "when", title: "What are you telling me about?",
       show: function () { return true; },
-      valid: function () { return !!S.mode && !!S.date && (S.mode === "day" || !!S.time); },
+      valid: function () { return !!S.mode && !!S.date && (S.mode !== "check" || !!S.time); },
       build: function (box) {
         var row = h("div", { "class": "grid" });
-        [["check", "How I feel right now"], ["day", "My whole day"]].forEach(function (o) {
+        [["check", "How I feel right now"], ["day", "My whole day"], ["add", "Add to a day I already saved"]].forEach(function (o) {
           var b = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.mode === o[0]) }, [o[1]]);
           b.onclick = function () { S.mode = o[0]; render(); };
           row.appendChild(b);
         });
         box.appendChild(row);
-        box.appendChild(hint(S.mode === "check" ? "A quick check-in. You can do more than one a day." : S.mode === "day" ? "Everything about the day: food, water, screens, and how you felt." : "Pick one."));
+        box.appendChild(hint(S.mode === "check" ? "A quick check-in. You can do more than one a day." : S.mode === "day" ? "Everything about the day: food, water, screens, and how you felt." : S.mode === "add" ? "Forgot something? Pick the day and add food, water, screens or sleep. It saves as an add-on for that day." : "Pick one."));
         box.appendChild(qtext("Which day?"));
         var d = h("input", { type: "date", value: S.date, max: todayStr() });
         d.onchange = function () { S.date = d.value; nextState(); };
@@ -355,10 +356,10 @@
         }
         box.appendChild(hint("Forgot to log a day? Pick that day."));
       },
-      summary: function () { return (S.mode === "day" ? "Whole day, " : "Right now, ") + prettyDate(S.date) + (S.mode === "check" ? " at " + prettyTime(S.time) : ""); } },
+      summary: function () { return (S.mode === "day" ? "Whole day, " : S.mode === "add" ? "Add-on to " : "Right now, ") + prettyDate(S.date) + (S.mode === "check" ? " at " + prettyTime(S.time) : ""); } },
 
     { id: "pain", title: "How bad is the pain right now (or at its worst)?",
-      show: function () { return true; },
+      show: function () { return !isAdd(); },
       valid: function () { return S.noPain || S.pain !== null; },
       build: function (box) {
         box.appendChild(hint("1 is barely there. 10 is the worst pain ever."));
@@ -434,7 +435,7 @@
       summary: function () { return "Sound: " + S.sound + ". Light: " + S.light + ". Talking: " + S.talk; } },
 
     { id: "tummy", title: "How is your tummy?",
-      show: function () { return true; }, valid: function () { return !!(S.nausea && S.threw && (S.threw !== "Yes" || S.better)); },
+      show: function () { return !isAdd(); }, valid: function () { return !!(S.nausea && S.threw && (S.threw !== "Yes" || S.better)); },
       build: function (box) {
         box.appendChild(qtext("Did you feel sick to your stomach (nauseous)?"));
         box.appendChild(yesno(function () { return S.nausea; }, function (v) { S.nausea = v; }));
@@ -448,7 +449,7 @@
       summary: function () { return "Nauseous: " + S.nausea + ". Threw up: " + S.threw + (S.threw === "Yes" ? ". Better afterward: " + S.better : ""); } },
 
     { id: "med", title: "Medicine",
-      show: function () { return true; }, valid: function () { return !!S.medicine; },
+      show: function () { return !isAdd(); }, valid: function () { return !!S.medicine; },
       build: function (box) {
         box.appendChild(qtext("Did you take any medicine for it today?"));
         box.appendChild(yesno(function () { return S.medicine; }, function (v) { S.medicine = v; }));
@@ -462,17 +463,17 @@
       summary: function () { return S.medicine + (S.medNote ? " (" + S.medNote + ")" : ""); } },
 
     { id: "body", title: "Today",
-      show: isDay, valid: function () { return !!(S.period && S.exercise); },
+      show: function () { return isDay() || isAdd(); }, valid: function () { return isAdd() || !!(S.period && S.exercise); },
       build: function (box) {
         box.appendChild(qtext("Do you have your period today?"));
         box.appendChild(choice(PERIOD, function () { return S.period; }, function (v) { S.period = v; }));
         box.appendChild(qtext("Did you exercise today?"));
         box.appendChild(yesno(function () { return S.exercise; }, function (v) { S.exercise = v; }));
       },
-      summary: function () { return "Period: " + S.period + ". Exercise: " + S.exercise; } },
+      summary: function () { return "Period: " + (S.period || "not added") + ". Exercise: " + (S.exercise || "not added"); } },
 
     { id: "screens", title: "Screens today",
-      show: isDay,
+      show: function () { return isDay() || isAdd(); },
       valid: function () {
         if (S.tv > 0 && !keys(S.tvKinds).length) return false;
         if (compMinutes() > 0 && !keys(S.compUses).length) return false;
@@ -491,7 +492,7 @@
       summary: function () { return "TV " + fmtMin(S.tv) + ", at school " + fmtMin(S.school) + ", homework " + fmtMin(S.homework) + ", computer or tablet at home " + fmtMin(S.comp) + ", phone or other " + fmtMin(S.phone); } },
 
     { id: "food", title: "What did you eat and drink?",
-      show: isDay, valid: function () { return true; },
+      show: function () { return isDay() || isAdd(); }, valid: function () { return true; },
       build: function (box) {
         box.appendChild(hint("Pick a meal, then tap what you had. Skip anything you do not remember."));
         var tabs = h("div", { "class": "row" });
@@ -512,7 +513,7 @@
       summary: function () { return foodText() || "Nothing entered"; } },
 
     { id: "water", title: "How many full bottles of water did you drink?",
-      show: isDay, valid: function () { return S.water !== null; },
+      show: function () { return isDay() || isAdd(); }, valid: function () { return isAdd() || S.water !== null; },
       build: function (box) {
         box.appendChild(hint("Your own water bottle."));
         var row = h("div", { "class": "grid" });
@@ -525,10 +526,10 @@
         }
         box.appendChild(row);
       },
-      summary: function () { return S.water === null ? "" : bottles(S.water); } },
+      summary: function () { return S.water === null ? "Not added" : bottles(S.water); } },
 
     { id: "other", title: "Does anything else hurt?",
-      show: function () { return true; }, valid: function () { return S.otherMode === "no" || (S.otherMode === "yes" && keys(S.others).length > 0); },
+      show: function () { return !isAdd(); }, valid: function () { return S.otherMode === "no" || (S.otherMode === "yes" && keys(S.others).length > 0); },
       build: function (box) {
         box.appendChild(hint("Besides your head."));
         var row = h("div", { "class": "row" });
@@ -562,16 +563,16 @@
       summary: function () { return S.otherMode === "no" ? "Nothing else hurts" : keys(S.others).join(", "); } },
 
     { id: "more", title: "A few more things",
-      show: isDay, valid: function () { return S.sleep !== null && !!S.jaw && !!S.aura; },
+      show: function () { return isDay() || isAdd(); }, valid: function () { return isAdd() || (S.sleep !== null && !!S.jaw && !!S.aura); },
       build: function (box) {
-        box.appendChild(stepper("Hours of sleep last night", "", function () { return S.sleep === null ? 8 : S.sleep; }, function (v) { S.sleep = v; }, 0.5, 14, function (v) { return v + " hr"; }));
-        if (S.sleep === null) { S.sleep = 8; }
+        box.appendChild(stepper("Hours of sleep last night", "", function () { return S.sleep === null ? 8 : S.sleep; }, function (v) { S.sleep = v; S.sleepSet = true; }, 0.5, 14, function (v) { return v + " hr"; }));
+        if (S.sleep === null && !isAdd()) { S.sleep = 8; }
         box.appendChild(qtext("Was your jaw or face sore or tight when you woke up?"));
         box.appendChild(yesno(function () { return S.jaw; }, function (v) { S.jaw = v; }));
         box.appendChild(qtext("Did you see zigzag lines or blurry spots?"));
         box.appendChild(yesno(function () { return S.aura; }, function (v) { S.aura = v; }));
       },
-      summary: function () { return "Sleep " + S.sleep + " hr. Sore jaw or face on waking: " + S.jaw + ". Zigzag lines or blurry spots: " + S.aura; } },
+      summary: function () { return "Sleep " + (S.sleep === null ? "not added" : S.sleep + " hr") + ". Sore jaw or face on waking: " + (S.jaw || "not added") + ". Zigzag lines or blurry spots: " + (S.aura || "not added"); } },
 
     { id: "review", title: "Here is your day", show: function () { return true; }, valid: function () { return true; },
       build: function (box) {
@@ -632,7 +633,28 @@
     }
   }
 
+  function buildAddBody() {
+    var p = new URLSearchParams();
+    var extra = ["Entry type: Add-on to a saved day", "Entry date: " + S.date];
+    var ft = foodText(); if (ft) p.append(E.food, ft);
+    if (S.water !== null) p.append(E.water, bottles(S.water));
+    if (S.period) p.append(E.period, S.period);
+    if (S.exercise) p.append(E.exercise, S.exercise);
+    if (S.tv > 0) { p.append(E.tv, tvRange(S.tv)); keys(S.tvKinds).forEach(function (x) { p.append(E.tvkinds, x); }); extra.push("TV minutes: " + S.tv); }
+    if (compMinutes() > 0) { p.append(E.comp, compRange(compMinutes())); keys(S.compUses).forEach(function (x) { p.append(E.compuse, x); }); }
+    if (S.school) extra.push("Computer or tablet at school (in class), minutes: " + S.school);
+    if (S.homework) extra.push("Computer or tablet for homework at home, minutes: " + S.homework);
+    if (S.comp) extra.push("Computer or tablet at home not school, minutes: " + S.comp);
+    if (S.phone) extra.push("Phone or other screens, minutes: " + S.phone);
+    if (S.sleepSet) extra.push("Sleep last night: " + S.sleep + " hours");
+    if (S.jaw) extra.push("Jaw or face sore on waking: " + S.jaw);
+    if (S.aura) extra.push("Zigzag lines or blurry spots: " + S.aura);
+    p.append(E.extra, extra.join("\n"));
+    return p;
+  }
+
   function buildBody() {
+    if (isAdd()) return buildAddBody();
     var p = new URLSearchParams();
     var nh = S.noPain;
     p.append(E.yesno, nh ? "No" : "Yes");
