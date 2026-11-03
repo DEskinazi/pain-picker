@@ -3,23 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Pain Picker</title>
 <style>
   :root {
     --bg: #f6f3ff; --card: #ffffff; --ink: #2b2540; --muted: #6b6485;
-    --accent: #6f4fd8; --line: #d9d2f2; --hot: #e8505b; --ok: #3aa86b;
+    --accent: #6f4fd8; --line: #d9d2f2; --hot: #e8505b; --ok: #3aa86b; --warn: #b4540a;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #1d1a2b; --card: #2a2640; --ink: #f1eefc; --muted: #b3acd0; --line: #4a4468; }
+    :root { --bg: #1d1a2b; --card: #2a2640; --ink: #f1eefc; --muted: #b3acd0; --line: #4a4468; --warn: #f0a468; }
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 720px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: 26px; margin: 8px 0 4px; }
-  p.sub { margin: 0 0 16px; color: var(--muted); }
-  section { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 16px; }
-  h2 { font-size: 20px; margin: 0 0 4px; }
-  .hint { color: var(--muted); font-size: 15px; margin: 0 0 12px; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; }
+  .top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 15px; margin-bottom: 8px; }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+  .bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  p.hint { color: var(--muted); font-size: 15px; margin: 0 0 12px; }
+  .note { color: var(--warn); font-weight: 600; margin: 10px 0 0; }
   .faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
   .face { border: 3px solid transparent; background: transparent; border-radius: 14px; padding: 6px 2px; cursor: pointer; color: var(--ink); font: inherit; text-align: center; }
   .face svg { width: 100%; max-width: 70px; height: auto; display: block; margin: 0 auto 2px; }
@@ -27,8 +31,13 @@
   .face .w { font-size: 12px; color: var(--muted); min-height: 30px; line-height: 1.15; }
   .face[aria-pressed="true"] { border-color: var(--accent); background: rgba(111,79,216,.12); }
   .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  button.pill { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 10px 16px; font: inherit; cursor: pointer; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+  button.pill { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 16px; padding: 12px 16px; min-height: 52px; font: inherit; cursor: pointer; text-align: center; }
   button.pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.chip { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 8px 14px; min-height: 44px; font: inherit; font-size: 16px; cursor: pointer; }
+  button.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .q { font-weight: 700; margin: 16px 0 0; }
+  .q:first-of-type { margin-top: 0; }
   .heads { display: flex; gap: 8px; justify-content: center; }
   .heads svg { width: 100%; max-width: 330px; height: auto; touch-action: manipulation; }
   .zone { fill: rgba(111,79,216,.10); stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; cursor: pointer; }
@@ -38,38 +47,38 @@
   .hair { fill: #6b4a33; }
   .vlabel { font-size: 15px; fill: var(--muted); text-anchor: middle; }
   .picked { margin: 10px 0 0; min-height: 26px; font-weight: 600; }
-  [hidden] { display: none !important; }
-  section.collapsed > *:not(h2):not(.summary) { display: none !important; }
-  .summary { display: none; margin: 4px 0 0; color: var(--muted); font-weight: 600; }
-  section.collapsed .summary { display: block; }
-  section h2 { cursor: default; }
-  section.collapsed h2 { cursor: pointer; }
-  section.collapsed h2::after { content: "  (tap to change)"; font-size: 14px; color: var(--accent); font-weight: 400; }
-  .go { display: block; width: 100%; background: var(--ok); color: #fff; border: 0; border-radius: 16px; padding: 16px; font: inherit; font-weight: 700; font-size: 20px; cursor: pointer; }
-  .go[disabled] { background: var(--line); color: var(--muted); cursor: default; }
-  .note { color: var(--muted); font-size: 14px; text-align: center; margin-top: 10px; }
+  .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .stepper:last-of-type { border-bottom: 0; }
+  .stepper .lbl { flex: 1; }
+  .stepper .lbl small { display: block; color: var(--muted); font-size: 13px; }
+  .stepper .val { min-width: 92px; text-align: center; font-weight: 700; font-size: 20px; }
+  .stepper button { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent); background: var(--card); color: var(--accent); font-size: 28px; line-height: 1; cursor: pointer; }
+  textarea, input[type=text] { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 8px; }
+  .nav { display: flex; gap: 10px; margin-top: 14px; }
+  .nav button { flex: 1; border: 0; border-radius: 16px; padding: 16px; font: inherit; font-weight: 700; font-size: 19px; cursor: pointer; }
+  .back { background: var(--line); color: var(--ink); flex: 0 0 34%; }
+  .next { background: var(--ok); color: #fff; }
+  .next[disabled] { background: var(--line); color: var(--muted); cursor: default; }
+  .rev { padding: 10px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; }
+  .rev b { display: block; }
+  .rev span { color: var(--muted); font-size: 15px; }
+  .rev button { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; white-space: nowrap; }
+  .done { text-align: center; padding: 20px 0; }
+  .done .big { font-size: 48px; }
+  .err { color: var(--hot); font-weight: 600; margin-top: 10px; }
+  .foot { color: var(--muted); font-size: 13px; text-align: center; margin-top: 12px; }
 </style>
 </head>
 <body>
 <main>
-  <h1>How does your head feel?</h1>
-  <p class="sub">Tap the face, then tap where it hurts. Then press the green button.</p>
+  <div class="top"><span id="stepLabel"></span><span>Pain Picker</span></div>
+  <div class="bar"><i id="barFill"></i></div>
+  <div class="card" id="box"></div>
+  <div class="nav" id="nav"></div>
+  <p class="foot">Your answers are saved to a private spreadsheet. Only your family can see them.</p>
+</main>
 
-  <section aria-labelledby="h-pain" id="painSection">
-    <h2 id="h-pain">1. How bad is the pain right now (or at its worst)?</h2>
-    <p class="summary" id="sumPain"></p>
-    <p class="hint">1 is barely there. 10 is the worst pain ever.</p>
-    <div class="faces" id="faces"></div>
-    <div class="row">
-      <button class="pill" id="nopain" aria-pressed="false">I have no headache today</button>
-    </div>
-  </section>
-
-  <section aria-labelledby="h-where" id="whereSection" hidden>
-    <h2 id="h-where">2. Where does it hurt?</h2>
-    <p class="summary" id="sumWhere"></p>
-    <p class="hint">Tap every spot that hurts. Tap again to undo. Left and right are YOUR left and right.</p>
-    <div class="heads">
+<template id="tplHead"><div class="heads">
       <svg viewBox="0 0 300 340" role="group" aria-label="Front of the head">
         <rect class="skin" x="124" y="230" width="52" height="70" rx="8"/>
         <ellipse class="skin" cx="63" cy="165" rx="12" ry="22"/>
@@ -102,21 +111,8 @@
         <rect class="zone" data-v="Neck" x="122" y="262" width="56" height="34" rx="10"/>
         <text class="vlabel" x="150" y="330">Back of your head</text>
       </svg>
-    </div>
-    <div class="row"><button class="pill" id="whole" aria-pressed="false">My whole head</button><button class="pill" id="notsure" aria-pressed="false">I am not sure where</button></div>
-    <p class="picked" id="picked" aria-live="polite"></p>
-  </section>
-
-  <section aria-labelledby="h-other" id="otherSection" hidden>
-    <h2 id="h-other">3. Does anything else hurt?</h2>
-    <p class="hint">Besides your head.</p>
-    <div class="row" style="margin-top:0">
-      <button class="pill" id="otherNo" aria-pressed="false">No, just my head</button>
-      <button class="pill" id="otherYes" aria-pressed="false">Yes, somewhere else</button>
-    </div>
-    <div id="bodyWrap" hidden>
-      <p class="hint" style="margin-top:12px">Tap every spot that hurts. Tap again to undo.</p>
-      <div class="heads">
+    </div></template>
+<template id="tplBody"><div class="heads">
         <svg viewBox="0 0 200 430" role="group" aria-label="Front of the body">
           <rect class="skin" x="90" y="60" width="20" height="26"/>
           <rect class="skin" x="30" y="84" width="24" height="136" rx="12"/><rect class="skin" x="146" y="84" width="24" height="136" rx="12"/>
@@ -187,152 +183,431 @@
           <ellipse class="zone" data-o="Right ankle or foot" cx="120" cy="388" rx="19" ry="14"/>
           <text class="vlabel" x="100" y="424">Back</text>
         </svg>
-      </div>
-      <p class="hint" style="margin-top:12px">Also tap if these bother you:</p>
-      <div class="row" style="margin-top:0">
-        <button class="pill otherpill" data-o="Ears" aria-pressed="false">Ears</button>
-        <button class="pill otherpill" data-o="Eyes" aria-pressed="false">Eyes</button>
-        <button class="pill otherpill" data-o="Feeling dizzy" aria-pressed="false">Feeling dizzy</button>
-      </div>
-      <p class="picked" id="otherPicked" aria-live="polite"></p>
-    </div>
-  </section>
-
-  <button class="go" id="go" disabled hidden>Open the rest of the form</button>
-  <p class="note">This picks your answers for you. You finish the other questions on the next screen and press Submit there.</p>
-</main>
+      </div></template>
 
 <script>
-  // Paste the published form link here (the one that ends in /viewform). Leave off anything after viewform.
-  var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeroaonjsS6sOJ8lQFthUnkPJiR4w9cSu9q7iFSd2rTlu-o4g/viewform";
+  var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeroaonjsS6sOJ8lQFthUnkPJiR4w9cSu9q7iFSd2rTlu-o4g/formResponse";
+  var E = {
+    yesno: "entry.1976648301", pain: "entry.1037874834", where: "entry.698254753", start: "entry.521363153",
+    howlong: "entry.1796062557", sound: "entry.1450825071", light: "entry.973833948", talk: "entry.957538766",
+    nausea: "entry.1299006793", threw: "entry.1450792784", exercise: "entry.674704528", medicine: "entry.1491094703",
+    period: "entry.911641817", tv: "entry.1256296792", tvkinds: "entry.1210548271", comp: "entry.108806580",
+    compuse: "entry.1663465607", food: "entry.1127112734", water: "entry.886854644", other: "entry.2058593937",
+    extra: "entry.281707570"
+  };
 
-  var ENTRY_YESNO = "entry.1976648301";
-  var ENTRY_PAIN  = "entry.1037874834";
-  var ENTRY_WHERE = "entry.698254753";
-
-  var pain = null, noPain = false, whole = false, spots = {};
-  var otherMode = null, others = {}, notSure = false, shown = {}, collapsed = { pain: false, where: false };
-  var ENTRY_OTHER = "entry.2058593937";
+  var S = null;
+  function fresh() {
+    return {
+      pain: null, noPain: false, spots: {}, whole: false, notSure: false, start: {}, howLong: null,
+      sound: null, light: null, talk: null, nausea: null, threw: null, medicine: null, medNote: "",
+      period: null, exercise: null, tv: 0, school: 0, comp: 0, phone: 0, tvKinds: {}, compUses: {},
+      meal: "Breakfast", foods: { "Breakfast": { chips: {}, text: "" }, "Lunch": { chips: {}, text: "" }, "Dinner": { chips: {}, text: "" }, "Snacks and drinks": { chips: {}, text: "" } },
+      water: null, otherMode: null, others: {}, sleep: null, jaw: null, aura: null
+    };
+  }
+  S = fresh();
 
   var words = ["Barely","Very mild","Mild","Tolerable","Bothers me","Hurts","Really hurts","Horrible","Awful","Worst ever"];
-  // Mouth curve and color per level, from smiling green to crying red.
   var colors = ["#7fcf6a","#8fd062","#a9d25a","#c5d352","#e3d04b","#f0b648","#f09a45","#ee7c47","#e9604c","#dd4350"];
-  var mouths = [
-    "M20 44 Q35 58 50 44","M20 45 Q35 56 50 45","M21 47 Q35 54 49 47","M22 49 Q35 53 48 49","M23 50 L47 50",
-    "M23 52 Q35 48 47 52","M22 54 Q35 46 48 54","M21 55 Q35 44 49 55","M20 56 Q35 42 50 56","M20 57 Q35 40 50 57"
+  var mouths = ["M20 44 Q35 58 50 44","M20 45 Q35 56 50 45","M21 47 Q35 54 49 47","M22 49 Q35 53 48 49","M23 50 L47 50","M23 52 Q35 48 47 52","M22 54 Q35 46 48 54","M21 55 Q35 44 49 55","M20 56 Q35 42 50 56","M20 57 Q35 40 50 57"];
+
+  var START = ["It woke me up","Started in the morning","Started around noon or afternoon","Started in the evening or night"];
+  var HOWLONG = ["Less than 1 hour","1 to 3 hours","3 to 6 hours","More than 6 hours","All day","I still have it right now"];
+  var LEVEL = ["No","A little","Yes, a lot"];
+  var TALK = ["Yes, normally","It was hard to find words or talk clearly","I could not talk"];
+  var PERIOD = ["Yes","No","I have not started my period yet"];
+  var TVKINDS = ["Cartoons","Comedy or sitcoms","Action or adventure","Scary or suspenseful","Reality or competition shows","Movies","YouTube or short videos","Educational or documentary"];
+  var COMPUSES = ["Schoolwork","Games","YouTube or videos","Typing or writing","Drawing or art","Chatting or messaging","Other"];
+  var MEALS = ["Breakfast","Lunch","Dinner","Snacks and drinks"];
+  var FOODCHIPS = ["Cereal","Eggs","Toast","Fruit","Yogurt","Oatmeal","Sandwich","Pasta","Rice","Chicken","Fish","Vegetables","Pizza","Cheese","Chips","Cookies","Chocolate","Candy","Milk","Juice","Soda","Tea or coffee","Skipped this meal"];
+
+  function h(tag, props, kids) {
+    var e = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      var v = props[k];
+      if (k === "class") e.className = v;
+      else if (k === "html") e.innerHTML = v;
+      else if (k.slice(0, 2) === "on") e[k] = v;
+      else e.setAttribute(k, v);
+    });
+    (kids || []).forEach(function (c) { e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+
+  function fmtMin(m) {
+    if (m === 0) return "0 min";
+    var hr = Math.floor(m / 60), mm = m % 60;
+    return (hr ? hr + " hr" : "") + (hr && mm ? " " : "") + (mm ? mm + " min" : "");
+  }
+  function tvRange(m) { return m === 0 ? "No TV today" : m < 60 ? "Less than 1 hour" : m < 120 ? "1 to 2 hours" : m < 180 ? "2 to 3 hours" : "More than 3 hours"; }
+  function compRange(m) { return m === 0 ? "No computer or tablet today" : m < 60 ? "Less than 1 hour" : m < 120 ? "1 to 2 hours" : m < 180 ? "2 to 3 hours" : "More than 3 hours"; }
+  function bottles(n) { return n === 0 ? "0 bottles" : n === 1 ? "1 bottle" : n >= 6 ? "6 or more bottles" : n + " bottles"; }
+  function keys(o) { return Object.keys(o); }
+  function chosenSpots() { return S.whole ? ["Whole head"] : keys(S.spots); }
+  function hasHeadache() { return S.pain !== null && !S.noPain; }
+  function compMinutes() { return S.school + S.comp; }
+
+  // building blocks
+  function choice(options, get, set, opts) {
+    opts = opts || {};
+    var wrap = h("div", { "class": opts.chips ? "row" : "grid" });
+    options.forEach(function (o) {
+      var b = h("button", { type: "button", "class": opts.chips ? "chip" : "pill", "aria-pressed": String(get() === o) }, [o]);
+      b.onclick = function () { set(o); if (opts.after) opts.after(); else render(); };
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+  function multi(options, map, opts) {
+    var wrap = h("div", { "class": "row" });
+    options.forEach(function (o) {
+      var b = h("button", { type: "button", "class": "chip", "aria-pressed": String(!!map[o]) }, [o]);
+      b.onclick = function () { if (map[o]) delete map[o]; else map[o] = true; render(); };
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+  function stepper(label, small, get, set, stepSize, max, fmt) {
+    var val = h("div", { "class": "val" }, [fmt(get())]);
+    var minus = h("button", { type: "button", "aria-label": "less " + label }, ["−"]);
+    var plus = h("button", { type: "button", "aria-label": "more " + label }, ["+"]);
+    minus.onclick = function () { set(Math.max(0, get() - stepSize)); render(); };
+    plus.onclick = function () { set(Math.min(max, get() + stepSize)); render(); };
+    var lbl = h("div", { "class": "lbl" }, [label]);
+    if (small) lbl.appendChild(h("small", {}, [small]));
+    return h("div", { "class": "stepper" }, [lbl, minus, val, plus]);
+  }
+  function qtext(t) { return h("p", { "class": "q" }, [t]); }
+  function hint(t) { return h("p", { "class": "hint" }, [t]); }
+  function yesno(get, set) { return choice(["Yes", "No"], get, set); }
+
+  function paintZones(root) {
+    Array.prototype.forEach.call(root.querySelectorAll(".zone[data-v]"), function (z) {
+      z.classList.toggle("on", !S.whole && !!S.spots[z.getAttribute("data-v")]);
+    });
+    Array.prototype.forEach.call(root.querySelectorAll(".zone[data-o]"), function (z) {
+      z.classList.toggle("on", !!S.others[z.getAttribute("data-o")]);
+    });
+  }
+
+  var STEPS = [
+    { id: "pain", title: "How bad is the pain right now (or at its worst)?",
+      show: function () { return true; },
+      valid: function () { return S.noPain || S.pain !== null; },
+      build: function (box) {
+        box.appendChild(hint("1 is barely there. 10 is the worst pain ever."));
+        var f = h("div", { "class": "faces" });
+        for (var i = 1; i <= 10; i++) {
+          var tears = i >= 9 ? '<path d="M22 38 q-3 8 0 10 M48 38 q3 8 0 10" fill="none" stroke="#4a8fd8" stroke-width="3" stroke-linecap="round"/>' : "";
+          var brows = (i >= 5 && i < 8) ? '<path d="M17 25 L30 19 M53 25 L40 19" stroke="#2b2540" stroke-width="3" stroke-linecap="round"/>' : "";
+          var eyes = i >= 8 ? '<path d="M19 26 L31 31 L19 36 M51 26 L39 31 L51 36" fill="none" stroke="#2b2540" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' : '<circle cx="25" cy="30" r="3.5" fill="#2b2540"/><circle cx="45" cy="30" r="3.5" fill="#2b2540"/>';
+          var b = h("button", { "class": "face", type: "button", "aria-pressed": String(S.pain === i && !S.noPain), "aria-label": i + " out of 10, " + words[i - 1] });
+          b.innerHTML = '<svg viewBox="0 0 70 70" aria-hidden="true"><circle cx="35" cy="35" r="31" fill="' + colors[i - 1] + '" stroke="#2b2540" stroke-width="3"/>' + eyes + brows + tears +
+            '<path d="' + mouths[i - 1] + '" fill="none" stroke="#2b2540" stroke-width="3.5" stroke-linecap="round"/></svg><div class="n">' + i + '</div><div class="w">' + words[i - 1] + '</div>';
+          (function (n) { b.onclick = function () { S.pain = n; S.noPain = false; go(1); }; })(i);
+          f.appendChild(b);
+        }
+        box.appendChild(f);
+        var no = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.noPain), style: "margin-top:12px;width:100%" }, ["I have no headache today"]);
+        no.onclick = function () {
+          S.noPain = true; S.pain = null; S.spots = {}; S.whole = false; S.notSure = false; S.start = {}; S.howLong = null;
+          S.sound = null; S.light = null; S.talk = null; go(1);
+        };
+        box.appendChild(no);
+      },
+      summary: function () { return S.noPain ? "No headache today" : (S.pain !== null ? S.pain + " out of 10, " + words[S.pain - 1] : ""); } },
+
+    { id: "where", title: "Where does your head hurt?",
+      show: hasHeadache,
+      valid: function () { return S.whole || S.notSure || keys(S.spots).length > 0; },
+      build: function (box) {
+        box.appendChild(hint("Tap every spot that hurts. Tap again to undo. Left and right are YOUR left and right."));
+        var tpl = document.getElementById("tplHead").content.cloneNode(true);
+        var wrap = h("div", {}); wrap.appendChild(tpl); box.appendChild(wrap);
+        Array.prototype.forEach.call(wrap.querySelectorAll(".zone[data-v]"), function (z) {
+          z.onclick = function () {
+            var v = z.getAttribute("data-v"); S.whole = false; S.notSure = false;
+            if (S.spots[v]) delete S.spots[v]; else S.spots[v] = true;
+            paintZones(box); picked.textContent = pickedText();
+            nextState();
+          };
+        });
+        var row = h("div", { "class": "row" });
+        var whole = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.whole) }, ["My whole head"]);
+        whole.onclick = function () { S.whole = !S.whole; if (S.whole) { S.spots = {}; S.notSure = false; } render(); };
+        var ns = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.notSure) }, ["I am not sure where"]);
+        ns.onclick = function () { S.notSure = !S.notSure; if (S.notSure) { S.spots = {}; S.whole = false; } render(); };
+        row.appendChild(whole); row.appendChild(ns); box.appendChild(row);
+        var picked = h("p", { "class": "picked" }, [pickedText()]); box.appendChild(picked);
+        paintZones(box);
+        function pickedText() { return S.notSure ? "Not sure where." : (chosenSpots().length ? "It hurts: " + chosenSpots().join(", ") : ""); }
+      },
+      summary: function () { return S.notSure ? "Not sure where" : chosenSpots().join(", "); } },
+
+    { id: "start", title: "When did it start?",
+      show: hasHeadache, valid: function () { return true; },
+      build: function (box) { box.appendChild(hint("Pick all that apply, or skip.")); box.appendChild(multi(START, S.start)); },
+      summary: function () { return keys(S.start).join(", ") || "Skipped"; } },
+
+    { id: "howlong", title: "How long did the headache last?",
+      show: hasHeadache, valid: function () { return !!S.howLong; },
+      build: function (box) { box.appendChild(choice(HOWLONG, function () { return S.howLong; }, function (v) { S.howLong = v; }, { after: function () { go(1); } })); },
+      summary: function () { return S.howLong || ""; } },
+
+    { id: "senses", title: "How did your head and senses feel?",
+      show: hasHeadache, valid: function () { return !!(S.sound && S.light && S.talk); },
+      build: function (box) {
+        box.appendChild(qtext("Were sounds bothering you more than usual?"));
+        box.appendChild(choice(LEVEL, function () { return S.sound; }, function (v) { S.sound = v; }));
+        box.appendChild(qtext("Was light bothering you more than usual?"));
+        box.appendChild(choice(LEVEL, function () { return S.light; }, function (v) { S.light = v; }));
+        box.appendChild(qtext("Could you talk normally?"));
+        box.appendChild(choice(TALK, function () { return S.talk; }, function (v) { S.talk = v; }));
+        if (S.talk && S.talk !== TALK[0]) box.appendChild(h("p", { "class": "note" }, ["If it was hard to talk, tell a grown-up right now."]));
+      },
+      summary: function () { return "Sound: " + S.sound + ". Light: " + S.light + ". Talking: " + S.talk; } },
+
+    { id: "tummy", title: "How is your tummy?",
+      show: function () { return true; }, valid: function () { return !!(S.nausea && S.threw); },
+      build: function (box) {
+        box.appendChild(qtext("Did you feel sick to your stomach (nauseous)?"));
+        box.appendChild(yesno(function () { return S.nausea; }, function (v) { S.nausea = v; }));
+        box.appendChild(qtext("Did you throw up?"));
+        box.appendChild(yesno(function () { return S.threw; }, function (v) { S.threw = v; }));
+      },
+      summary: function () { return "Nauseous: " + S.nausea + ". Threw up: " + S.threw; } },
+
+    { id: "med", title: "Medicine",
+      show: function () { return true; }, valid: function () { return !!S.medicine; },
+      build: function (box) {
+        box.appendChild(qtext("Did you take any medicine for it today?"));
+        box.appendChild(yesno(function () { return S.medicine; }, function (v) { S.medicine = v; }));
+        if (S.medicine === "Yes") {
+          box.appendChild(hint("Optional: which medicine and when?"));
+          var t = h("input", { type: "text", placeholder: "Example: ibuprofen at 3 pm", value: S.medNote });
+          t.oninput = function () { S.medNote = t.value; };
+          box.appendChild(t);
+        }
+      },
+      summary: function () { return S.medicine + (S.medNote ? " (" + S.medNote + ")" : ""); } },
+
+    { id: "body", title: "Today",
+      show: function () { return true; }, valid: function () { return !!(S.period && S.exercise); },
+      build: function (box) {
+        box.appendChild(qtext("Do you have your period today?"));
+        box.appendChild(choice(PERIOD, function () { return S.period; }, function (v) { S.period = v; }));
+        box.appendChild(qtext("Did you exercise today?"));
+        box.appendChild(yesno(function () { return S.exercise; }, function (v) { S.exercise = v; }));
+      },
+      summary: function () { return "Period: " + S.period + ". Exercise: " + S.exercise; } },
+
+    { id: "screens", title: "Screens today",
+      show: function () { return true;},
+      valid: function () {
+        if (S.tv > 0 && !keys(S.tvKinds).length) return false;
+        if (compMinutes() > 0 && !keys(S.compUses).length) return false;
+        return true;
+      },
+      build: function (box) {
+        box.appendChild(hint("Tap + for each half hour. A grown-up can check Screen Time to help."));
+        box.appendChild(stepper("TV", "", function () { return S.tv; }, function (v) { S.tv = v; }, 30, 600, fmtMin));
+        box.appendChild(stepper("Computer or tablet for school", "", function () { return S.school; }, function (v) { S.school = v; }, 30, 600, fmtMin));
+        box.appendChild(stepper("Computer or tablet, not school", "", function () { return S.comp; }, function (v) { S.comp = v; }, 30, 600, fmtMin));
+        box.appendChild(stepper("Phone or other screens", "", function () { return S.phone; }, function (v) { S.phone = v; }, 30, 600, fmtMin));
+        if (S.tv > 0) { box.appendChild(qtext("What kind of shows did you watch?")); box.appendChild(multi(TVKINDS, S.tvKinds)); }
+        if (compMinutes() > 0) { box.appendChild(qtext("What did you use the computer or tablet for?")); box.appendChild(multi(COMPUSES, S.compUses)); }
+      },
+      summary: function () { return "TV " + fmtMin(S.tv) + ", school screens " + fmtMin(S.school) + ", other computer or tablet " + fmtMin(S.comp) + ", phone or other " + fmtMin(S.phone); } },
+
+    { id: "food", title: "What did you eat and drink?",
+      show: function () { return true; }, valid: function () { return true; },
+      build: function (box) {
+        box.appendChild(hint("Pick a meal, then tap what you had. Skip anything you do not remember."));
+        var tabs = h("div", { "class": "row" });
+        MEALS.forEach(function (m) {
+          var f = S.foods[m]; var n = keys(f.chips).length + (f.text ? 1 : 0);
+          var b = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.meal === m) }, [m + (n ? " (" + n + ")" : "")]);
+          b.onclick = function () { S.meal = m; render(); };
+          tabs.appendChild(b);
+        });
+        box.appendChild(tabs);
+        var f = S.foods[S.meal];
+        box.appendChild(h("p", { "class": "q" }, [S.meal]));
+        box.appendChild(multi(FOODCHIPS, f.chips));
+        var t = h("textarea", { rows: "2", placeholder: "Anything else? (optional)" }); t.value = f.text;
+        t.oninput = function () { f.text = t.value; };
+        box.appendChild(t);
+      },
+      summary: function () { return foodText() || "Nothing entered"; } },
+
+    { id: "water", title: "How many full bottles of water did you drink?",
+      show: function () { return true; }, valid: function () { return S.water !== null; },
+      build: function (box) {
+        box.appendChild(hint("Your own water bottle."));
+        var row = h("div", { "class": "grid" });
+        for (var i = 0; i <= 6; i++) {
+          (function (n) {
+            var b = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.water === n) }, [n === 6 ? "6 or more" : String(n)]);
+            b.onclick = function () { S.water = n; go(1); };
+            row.appendChild(b);
+          })(i);
+        }
+        box.appendChild(row);
+      },
+      summary: function () { return S.water === null ? "" : bottles(S.water); } },
+
+    { id: "other", title: "Does anything else hurt?",
+      show: function () { return true; }, valid: function () { return S.otherMode === "no" || (S.otherMode === "yes" && keys(S.others).length > 0); },
+      build: function (box) {
+        box.appendChild(hint("Besides your head."));
+        var row = h("div", { "class": "row" });
+        var no = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.otherMode === "no") }, ["No, just my head"]);
+        no.onclick = function () { S.otherMode = "no"; S.others = {}; render(); };
+        var yes = h("button", { type: "button", "class": "pill", "aria-pressed": String(S.otherMode === "yes") }, ["Yes, somewhere else"]);
+        yes.onclick = function () { S.otherMode = "yes"; render(); };
+        row.appendChild(no); row.appendChild(yes); box.appendChild(row);
+        if (S.otherMode === "yes") {
+          box.appendChild(hint("Tap every spot that hurts. Tap again to undo."));
+          var wrap = h("div", {}); wrap.appendChild(document.getElementById("tplBody").content.cloneNode(true)); box.appendChild(wrap);
+          Array.prototype.forEach.call(wrap.querySelectorAll(".zone[data-o]"), function (z) {
+            z.onclick = function () {
+              var v = z.getAttribute("data-o"); if (S.others[v]) delete S.others[v]; else S.others[v] = true;
+              paintZones(box); pk.textContent = ptxt(); nextState();
+            };
+          });
+          box.appendChild(hint("Also tap if these bother you:"));
+          var pills = h("div", { "class": "row" });
+          ["Ears", "Eyes", "Feeling dizzy"].forEach(function (o) {
+            var b = h("button", { type: "button", "class": "chip", "aria-pressed": String(!!S.others[o]) }, [o]);
+            b.onclick = function () { if (S.others[o]) delete S.others[o]; else S.others[o] = true; render(); };
+            pills.appendChild(b);
+          });
+          box.appendChild(pills);
+          var pk = h("p", { "class": "picked" }, [ptxt()]); box.appendChild(pk);
+          paintZones(box);
+          function ptxt() { return keys(S.others).length ? "Also hurts: " + keys(S.others).join(", ") : ""; }
+        }
+      },
+      summary: function () { return S.otherMode === "no" ? "Nothing else hurts" : keys(S.others).join(", "); } },
+
+    { id: "more", title: "A few more things",
+      show: function () { return true; }, valid: function () { return S.sleep !== null && !!S.jaw && !!S.aura; },
+      build: function (box) {
+        box.appendChild(stepper("Hours of sleep last night", "", function () { return S.sleep === null ? 8 : S.sleep; }, function (v) { S.sleep = v; }, 0.5, 14, function (v) { return v + " hr"; }));
+        if (S.sleep === null) { S.sleep = 8; }
+        box.appendChild(qtext("Was your jaw or face sore or tight when you woke up?"));
+        box.appendChild(yesno(function () { return S.jaw; }, function (v) { S.jaw = v; }));
+        box.appendChild(qtext("Did you see zigzag lines or blurry spots?"));
+        box.appendChild(yesno(function () { return S.aura; }, function (v) { S.aura = v; }));
+      },
+      summary: function () { return "Sleep " + S.sleep + " hr. Sore jaw or face on waking: " + S.jaw + ". Zigzag lines or blurry spots: " + S.aura; } },
+
+    { id: "review", title: "Here is your day", show: function () { return true; }, valid: function () { return true; },
+      build: function (box) {
+        STEPS.forEach(function (s) {
+          if (s.id === "review" || !s.show() || !s.summary) return;
+          var left = h("div", {}, [h("b", {}, [s.title]), h("span", {}, [s.summary()])]);
+          var ch = h("button", { type: "button" }, ["Change"]);
+          ch.onclick = function () { cur = s.id; render(); };
+          box.appendChild(h("div", { "class": "rev" }, [left, ch]));
+        });
+        if (errMsg) box.appendChild(h("p", { "class": "err" }, [errMsg]));
+      } }
   ];
 
-  var facesEl = document.getElementById("faces");
-  for (var i = 1; i <= 10; i++) {
-    var b = document.createElement("button");
-    b.className = "face"; b.type = "button"; b.setAttribute("aria-pressed", "false");
-    b.setAttribute("aria-label", i + " out of 10, " + words[i-1]);
-    var tears = i >= 9 ? '<path d="M22 38 q-3 8 0 10 M48 38 q3 8 0 10" fill="none" stroke="#4a8fd8" stroke-width="3" stroke-linecap="round"/>' : "";
-    var brows = i >= 5 ? '<path d="M17 25 L30 19 M53 25 L40 19" stroke="#2b2540" stroke-width="3" stroke-linecap="round"/>' : "";
-    var eyes = i >= 8 ? '<path d="M19 26 L31 31 L19 36 M51 26 L39 31 L51 36" fill="none" stroke="#2b2540" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' : '<circle cx="25" cy="30" r="3.5" fill="#2b2540"/><circle cx="45" cy="30" r="3.5" fill="#2b2540"/>';
-    brows = i >= 8 ? "" : brows;
-    b.innerHTML = '<svg viewBox="0 0 70 70" aria-hidden="true"><circle cx="35" cy="35" r="31" fill="' + colors[i-1] + '" stroke="#2b2540" stroke-width="3"/>' +
-      '' + eyes + brows + tears +
-      '<path d="' + mouths[i-1] + '" fill="none" stroke="#2b2540" stroke-width="3.5" stroke-linecap="round"/></svg>' +
-      '<div class="n">' + i + '</div><div class="w">' + words[i-1] + '</div>';
-    (function (n, el) {
-      el.addEventListener("click", function () { pain = n; noPain = false; collapsed.pain = true; render(); });
-    })(i, b);
-    facesEl.appendChild(b);
+  var cur = "pain", errMsg = "", saved = false, saving = false;
+
+  function visible() { return STEPS.filter(function (s) { return s.show(); }); }
+  function stepIndex() { var v = visible(); for (var i = 0; i < v.length; i++) if (v[i].id === cur) return i; return 0; }
+  function current() { return visible()[stepIndex()]; }
+  function go(delta) {
+    var v = visible(), i = stepIndex() + delta;
+    i = Math.max(0, Math.min(v.length - 1, i)); cur = v[i].id; errMsg = ""; render(); window.scrollTo(0, 0);
   }
+  function nextState() { var nb = document.getElementById("nextBtn"); if (nb) nb.disabled = !current().valid(); }
 
-  document.getElementById("nopain").addEventListener("click", function () {
-    noPain = !noPain; if (noPain) { pain = null; spots = {}; whole = false; notSure = false; collapsed.pain = true; } render();
-  });
-  document.getElementById("notsure").addEventListener("click", function () {
-    notSure = !notSure; if (notSure) { whole = false; spots = {}; noPain = false; } render();
-  });
-  document.getElementById("whole").addEventListener("click", function () {
-    whole = !whole; if (whole) { noPain = false; notSure = false; spots = {}; } render();
-  });
-  Array.prototype.forEach.call(document.querySelectorAll(".zone[data-v]"), function (z) {
-    z.addEventListener("click", function () {
-      var v = z.getAttribute("data-v"); noPain = false; whole = false; notSure = false;
-      if (spots[v]) { delete spots[v]; } else { spots[v] = true; }
-      render();
+  function foodText() {
+    var out = [];
+    MEALS.forEach(function (m) {
+      var f = S.foods[m]; var parts = keys(f.chips); if (f.text) parts.push(f.text);
+      if (parts.length) out.push(m + ": " + parts.join(", "));
     });
-  });
-
-  document.getElementById("otherNo").addEventListener("click", function () { otherMode = "no"; others = {}; collapsed.where = true; render(); });
-  document.getElementById("otherYes").addEventListener("click", function () { otherMode = "yes"; collapsed.where = true; render(); });
-  Array.prototype.forEach.call(document.querySelectorAll(".zone[data-o], .otherpill"), function (z) {
-    z.addEventListener("click", function () {
-      var v = z.getAttribute("data-o");
-      if (others[v]) { delete others[v]; } else { others[v] = true; }
-      render();
-    });
-  });
-
-  document.getElementById("h-pain").addEventListener("click", function () { if (collapsed.pain) { collapsed.pain = false; render(); } });
-  document.getElementById("h-where").addEventListener("click", function () { if (collapsed.where) { collapsed.where = false; render(); } });
-
-  function reveal(id, on) {
-    var el = document.getElementById(id);
-    var was = !!shown[id];
-    el.hidden = !on;
-    shown[id] = on;
-    if (on && !was) { setTimeout(function () { el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); }
+    return out.join("\n");
   }
-
-  function chosenSpots() { return whole ? ["Whole head"] : Object.keys(spots); }
 
   function render() {
-    Array.prototype.forEach.call(facesEl.children, function (el, idx) {
-      el.setAttribute("aria-pressed", String(pain === idx + 1));
-    });
-    document.getElementById("nopain").setAttribute("aria-pressed", String(noPain));
-    document.getElementById("whole").setAttribute("aria-pressed", String(whole));
-    Array.prototype.forEach.call(document.querySelectorAll(".zone[data-v]"), function (z) {
-      z.classList.toggle("on", !!spots[z.getAttribute("data-v")] && !whole);
-    });
-    var s = chosenSpots();
-    document.getElementById("picked").textContent = noPain ? "No headache today." : (notSure ? "Not sure where." : (s.length ? "It hurts: " + s.join(", ") : ""));
-    var haveWhere = whole || notSure || Object.keys(spots).length > 0;
-    var showWhere = !noPain && pain !== null;
-    var showOther = noPain || (showWhere && haveWhere);
-    document.getElementById("notsure").setAttribute("aria-pressed", String(notSure));
-    reveal("whereSection", showWhere);
-    reveal("otherSection", showOther);
-    reveal("go", showOther && otherMode !== null);
-    if (!showOther) { otherMode = null; others = {}; }
-    document.getElementById("otherNo").setAttribute("aria-pressed", String(otherMode === "no"));
-    document.getElementById("otherYes").setAttribute("aria-pressed", String(otherMode === "yes"));
-    document.getElementById("bodyWrap").hidden = otherMode !== "yes";
-    Array.prototype.forEach.call(document.querySelectorAll(".zone[data-o]"), function (z) {
-      z.classList.toggle("on", !!others[z.getAttribute("data-o")]);
-    });
-    Array.prototype.forEach.call(document.querySelectorAll(".otherpill"), function (b) {
-      b.setAttribute("aria-pressed", String(!!others[b.getAttribute("data-o")]));
-    });
-    var ok = Object.keys(others);
-    document.getElementById("otherPicked").textContent = ok.length ? "Also hurts: " + ok.join(", ") : "";
-    var painDone = noPain || pain !== null;
-    document.getElementById("painSection").classList.toggle("collapsed", collapsed.pain && painDone);
-    document.getElementById("sumPain").textContent = noPain ? "No headache today" : (pain !== null ? pain + " out of 10, " + words[pain - 1] : "");
-    document.getElementById("whereSection").classList.toggle("collapsed", collapsed.where && showWhere && haveWhere);
-    document.getElementById("sumWhere").textContent = notSure ? "Not sure where" : chosenSpots().join(", ");
-    document.getElementById("go").disabled = !(showOther && otherMode !== null);
+    var box = document.getElementById("box"), nav = document.getElementById("nav");
+    box.innerHTML = ""; nav.innerHTML = "";
+    if (saved) {
+      box.appendChild(h("div", { "class": "done" }, [h("div", { "class": "big" }, ["✅"]), h("h1", {}, ["Saved!"]), h("p", { "class": "hint" }, ["Thank you. Feel better soon."])]));
+      var again = h("button", { type: "button", "class": "pill", style: "width:100%" }, ["Start a new day"]);
+      again.onclick = function () { S = fresh(); saved = false; cur = "pain"; render(); window.scrollTo(0, 0); };
+      box.appendChild(again);
+      document.getElementById("stepLabel").textContent = ""; document.getElementById("barFill").style.width = "100%";
+      return;
+    }
+    var v = visible(), i = stepIndex(), s = v[i];
+    document.getElementById("stepLabel").textContent = "Step " + (i + 1) + " of " + v.length;
+    document.getElementById("barFill").style.width = Math.round(((i + 1) / v.length) * 100) + "%";
+    box.appendChild(h("h1", {}, [s.title]));
+    s.build(box);
+    if (i > 0) { var bk = h("button", { type: "button", "class": "back" }, ["Back"]); bk.onclick = function () { go(-1); }; nav.appendChild(bk); }
+    if (s.id === "review") {
+      var sv = h("button", { type: "button", "class": "next", id: "nextBtn" }, [saving ? "Saving..." : "Save my day"]);
+      sv.disabled = saving; sv.onclick = submit; nav.appendChild(sv);
+    } else {
+      var nx = h("button", { type: "button", "class": "next", id: "nextBtn" }, ["Next"]);
+      nx.disabled = !s.valid(); nx.onclick = function () { go(1); }; nav.appendChild(nx);
+    }
   }
 
-  document.getElementById("go").addEventListener("click", function () {
-    if (FORM_URL.indexOf("PASTE") === 0) { alert("The form link has not been added yet. Ask Mom."); return; }
-    var q = ["usp=pp_url"];
-    if (noPain) {
-      q.push(ENTRY_YESNO + "=No");
-    } else {
-      q.push(ENTRY_YESNO + "=Yes");
-      q.push(ENTRY_PAIN + "=" + pain);
-      chosenSpots().forEach(function (v) { q.push(ENTRY_WHERE + "=" + encodeURIComponent(v)); });
+  function buildBody() {
+    var p = new URLSearchParams();
+    var nh = S.noPain;
+    p.append(E.yesno, nh ? "No" : "Yes");
+    if (!nh) {
+      p.append(E.pain, String(S.pain));
+      chosenSpots().forEach(function (x) { p.append(E.where, x); });
+      keys(S.start).forEach(function (x) { p.append(E.start, x); });
     }
-    if (otherMode === "no") { q.push(ENTRY_OTHER + "=" + encodeURIComponent("Nothing else hurts")); }
-    if (otherMode === "yes") { Object.keys(others).forEach(function (v) { q.push(ENTRY_OTHER + "=" + encodeURIComponent(v)); }); }
-    window.location.href = FORM_URL + (FORM_URL.indexOf("?") < 0 ? "?" : "&") + q.join("&");
-  });
+    p.append(E.howlong, nh ? "No headache today" : S.howLong);
+    p.append(E.sound, nh ? "No" : S.sound);
+    p.append(E.light, nh ? "No" : S.light);
+    p.append(E.talk, nh ? "Yes, normally" : S.talk);
+    p.append(E.nausea, S.nausea); p.append(E.threw, S.threw);
+    p.append(E.exercise, S.exercise); p.append(E.medicine, S.medicine); p.append(E.period, S.period);
+    p.append(E.tv, tvRange(S.tv));
+    if (S.tv > 0) keys(S.tvKinds).forEach(function (x) { p.append(E.tvkinds, x); }); else p.append(E.tvkinds, "No TV today");
+    p.append(E.comp, compRange(compMinutes()));
+    if (compMinutes() > 0) keys(S.compUses).forEach(function (x) { p.append(E.compuse, x); }); else p.append(E.compuse, "Did not use a computer");
+    p.append(E.food, foodText() || "Nothing entered");
+    p.append(E.water, bottles(S.water));
+    if (S.otherMode === "yes") keys(S.others).forEach(function (x) { p.append(E.other, x); }); else p.append(E.other, "Nothing else hurts");
+    var extra = [
+      "TV minutes: " + S.tv,
+      "Computer or tablet for school, minutes: " + S.school,
+      "Computer or tablet not school, minutes: " + S.comp,
+      "Phone or other screens, minutes: " + S.phone,
+      "Sleep last night: " + S.sleep + " hours",
+      "Jaw or face sore on waking: " + S.jaw,
+      "Zigzag lines or blurry spots: " + S.aura
+    ];
+    if (S.medicine === "Yes" && S.medNote) extra.push("Medicine: " + S.medNote);
+    if (S.notSure) extra.push("Headache location: not sure");
+    p.append(E.extra, extra.join("\n"));
+    return p;
+  }
+
+  function submit() {
+    if (saving) return;
+    saving = true; errMsg = ""; render();
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: buildBody() }).then(function () {
+      saving = false; saved = true; render(); window.scrollTo(0, 0);
+    }).catch(function () {
+      saving = false; errMsg = "Could not save. Check the internet and try again."; render();
+    });
+  }
 
   render();
 </script>
