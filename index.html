@@ -39,6 +39,12 @@
   .vlabel { font-size: 15px; fill: var(--muted); text-anchor: middle; }
   .picked { margin: 10px 0 0; min-height: 26px; font-weight: 600; }
   [hidden] { display: none !important; }
+  section.collapsed > *:not(h2):not(.summary) { display: none !important; }
+  .summary { display: none; margin: 4px 0 0; color: var(--muted); font-weight: 600; }
+  section.collapsed .summary { display: block; }
+  section h2 { cursor: default; }
+  section.collapsed h2 { cursor: pointer; }
+  section.collapsed h2::after { content: "  (tap to change)"; font-size: 14px; color: var(--accent); font-weight: 400; }
   .go { display: block; width: 100%; background: var(--ok); color: #fff; border: 0; border-radius: 16px; padding: 16px; font: inherit; font-weight: 700; font-size: 20px; cursor: pointer; }
   .go[disabled] { background: var(--line); color: var(--muted); cursor: default; }
   .note { color: var(--muted); font-size: 14px; text-align: center; margin-top: 10px; }
@@ -49,8 +55,9 @@
   <h1>How does your head feel?</h1>
   <p class="sub">Tap the face, then tap where it hurts. Then press the green button.</p>
 
-  <section aria-labelledby="h-pain">
+  <section aria-labelledby="h-pain" id="painSection">
     <h2 id="h-pain">1. How bad is the pain right now (or at its worst)?</h2>
+    <p class="summary" id="sumPain"></p>
     <p class="hint">1 is barely there. 10 is the worst pain ever.</p>
     <div class="faces" id="faces"></div>
     <div class="row">
@@ -60,6 +67,7 @@
 
   <section aria-labelledby="h-where" id="whereSection" hidden>
     <h2 id="h-where">2. Where does it hurt?</h2>
+    <p class="summary" id="sumWhere"></p>
     <p class="hint">Tap every spot that hurts. Tap again to undo. Left and right are YOUR left and right.</p>
     <div class="heads">
       <svg viewBox="0 0 300 340" role="group" aria-label="Front of the head">
@@ -203,7 +211,7 @@
   var ENTRY_WHERE = "entry.698254753";
 
   var pain = null, noPain = false, whole = false, spots = {};
-  var otherMode = null, others = {}, notSure = false, shown = {};
+  var otherMode = null, others = {}, notSure = false, shown = {}, collapsed = { pain: false, where: false };
   var ENTRY_OTHER = "entry.2058593937";
 
   var words = ["Barely","Very mild","Mild","Tolerable","Bothers me","Hurts","Really hurts","Horrible","Awful","Worst ever"];
@@ -228,13 +236,13 @@
       '<path d="' + mouths[i-1] + '" fill="none" stroke="#2b2540" stroke-width="3.5" stroke-linecap="round"/></svg>' +
       '<div class="n">' + i + '</div><div class="w">' + words[i-1] + '</div>';
     (function (n, el) {
-      el.addEventListener("click", function () { pain = n; noPain = false; render(); });
+      el.addEventListener("click", function () { pain = n; noPain = false; collapsed.pain = true; render(); });
     })(i, b);
     facesEl.appendChild(b);
   }
 
   document.getElementById("nopain").addEventListener("click", function () {
-    noPain = !noPain; if (noPain) { pain = null; spots = {}; whole = false; notSure = false; } render();
+    noPain = !noPain; if (noPain) { pain = null; spots = {}; whole = false; notSure = false; collapsed.pain = true; } render();
   });
   document.getElementById("notsure").addEventListener("click", function () {
     notSure = !notSure; if (notSure) { whole = false; spots = {}; noPain = false; } render();
@@ -250,8 +258,8 @@
     });
   });
 
-  document.getElementById("otherNo").addEventListener("click", function () { otherMode = "no"; others = {}; render(); });
-  document.getElementById("otherYes").addEventListener("click", function () { otherMode = "yes"; render(); });
+  document.getElementById("otherNo").addEventListener("click", function () { otherMode = "no"; others = {}; collapsed.where = true; render(); });
+  document.getElementById("otherYes").addEventListener("click", function () { otherMode = "yes"; collapsed.where = true; render(); });
   Array.prototype.forEach.call(document.querySelectorAll(".zone[data-o], .otherpill"), function (z) {
     z.addEventListener("click", function () {
       var v = z.getAttribute("data-o");
@@ -259,6 +267,9 @@
       render();
     });
   });
+
+  document.getElementById("h-pain").addEventListener("click", function () { if (collapsed.pain) { collapsed.pain = false; render(); } });
+  document.getElementById("h-where").addEventListener("click", function () { if (collapsed.where) { collapsed.where = false; render(); } });
 
   function reveal(id, on) {
     var el = document.getElementById(id);
@@ -300,6 +311,11 @@
     });
     var ok = Object.keys(others);
     document.getElementById("otherPicked").textContent = ok.length ? "Also hurts: " + ok.join(", ") : "";
+    var painDone = noPain || pain !== null;
+    document.getElementById("painSection").classList.toggle("collapsed", collapsed.pain && painDone);
+    document.getElementById("sumPain").textContent = noPain ? "No headache today" : (pain !== null ? pain + " out of 10, " + words[pain - 1] : "");
+    document.getElementById("whereSection").classList.toggle("collapsed", collapsed.where && showWhere && haveWhere);
+    document.getElementById("sumWhere").textContent = notSure ? "Not sure where" : chosenSpots().join(", ");
     document.getElementById("go").disabled = !(showOther && otherMode !== null);
   }
 
